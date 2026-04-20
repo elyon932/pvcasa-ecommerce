@@ -217,7 +217,10 @@ async function getDatabaseCatalog(): Promise<Product[] | null> {
       description: normalizeCopy(product.description),
       priceInCents: product.priceInCents,
       compareAtCents: product.compareAtCents ?? undefined,
-      shippingInCents: product.shippingInCents,
+      shippingInCents:
+        "shippingInCents" in product && typeof product.shippingInCents === "number"
+          ? product.shippingInCents
+          : 999,
       stock: product.stock,
       isFeatured: product.featured,
       isNew: false,
