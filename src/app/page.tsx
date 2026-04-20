@@ -1,65 +1,144 @@
 import Image from "next/image";
+import Link from "next/link";
+import { StorefrontShell } from "@/components/layout/storefront-shell";
+import { HeroCarousel } from "@/components/store/hero-carousel";
+import { ProductCard } from "@/components/store/product-card";
+import {
+  getCategories,
+  getFeaturedProducts,
+  getHeroSlides,
+  getNewProducts,
+  getSaleProducts,
+} from "@/lib/storefront";
 
-export default function Home() {
+export default async function HomePage() {
+  const [slides, categories, featuredProducts, saleProducts, newProducts] = await Promise.all([
+    getHeroSlides(),
+    getCategories(),
+    getFeaturedProducts(),
+    getSaleProducts(),
+    getNewProducts(),
+  ]);
+
+  const orderedCategories = ["bed", "table", "bath", "decor", "kids"]
+    .map((slug) => categories.find((category) => category.slug === slug))
+    .filter((category): category is (typeof categories)[number] => Boolean(category));
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <StorefrontShell>
+      <div className="container-shell space-y-10 py-8 lg:space-y-14 lg:py-10">
+        <section className="space-y-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+            Vitrine
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          <HeroCarousel slides={slides} />
+        </section>
+
+        <section className="space-y-5">
+          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+            Categorias
+          </p>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+            {orderedCategories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/shop?category=${category.slug}`}
+                className="interactive-lift group relative block overflow-hidden rounded-[2rem] border border-[color:var(--border)] bg-white shadow-[0_18px_40px_rgba(60,38,22,0.06)]"
+              >
+                <div className="relative aspect-[4/4.5] overflow-hidden">
+                  <Image
+                    src={category.imageUrl ?? slides[0].imageUrl}
+                    alt={category.name}
+                    fill
+                    className="interactive-zoom object-cover"
+                    sizes="(max-width: 1280px) 100vw, 20vw"
+                  />
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(34,22,15,0.08)_0%,rgba(34,22,15,0.68)_100%)]" />
+                  <div className="absolute bottom-4 left-4">
+                    <h2 className="font-serif text-3xl text-[color:var(--copper-light)] sm:text-[2rem]">
+                      {category.name}
+                    </h2>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="space-y-6">
+          <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+                Destaques
+              </p>
+              <h2 className="mt-2 font-serif text-[clamp(1.75rem,2.4vw,2.2rem)] leading-none text-[color:var(--wood-dark)]">
+                Os itens mais procurados da semana
+              </h2>
+            </div>
+            <Link
+              href="/shop?featured=1"
+              className="whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+            >
+              Ver tudo
+            </Link>
+          </div>
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-10 xl:grid-cols-2">
+          <div className="space-y-6">
+            <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+                  Promoções
+                </p>
+                <h2 className="mt-2 font-serif text-[clamp(1.3rem,2.05vw,1.95rem)] leading-none text-[color:var(--wood-dark)]">
+                  Preços especiais para comprar agora
+                </h2>
+              </div>
+              <Link
+                href="/shop?sale=1"
+                className="whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+              >
+                Ver tudo
+              </Link>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {saleProducts.slice(0, 4).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+                  Novidades
+                </p>
+                <h2 className="mt-2 font-serif text-[clamp(1.3rem,2.05vw,1.95rem)] leading-none text-[color:var(--wood-dark)]">
+                  Novos produtos para você
+                </h2>
+              </div>
+              <Link
+                href="/shop?sort=newest"
+                className="whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+              >
+                Ver tudo
+              </Link>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              {newProducts.slice(0, 4).map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
+    </StorefrontShell>
   );
 }
