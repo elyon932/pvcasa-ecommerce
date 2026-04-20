@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PV Casa Ecommerce
 
-## Getting Started
+Production-oriented ecommerce for PV Casa, built for a real retail workflow with a polished storefront, customer account area, admin dashboard, and a codebase sized appropriately for the business.
 
-First, run the development server:
+## Highlights
+
+- Next.js 16 App Router with Tailwind CSS 4
+- PostgreSQL-ready relational model with Prisma
+- Separate admin and customer authentication flows with Auth.js
+- Search and filter flow with similarity matching over product names and descriptions
+- Customer account with order history and profile details
+- Admin dashboard for products, categories, homepage content, and orders
+- Stripe-ready payment flow with demo fallback when keys are not configured
+- Local brand assets and social icons, with remote photography for banners and category cards
+
+## Routes
+
+- `/` storefront homepage focused on products, pricing, promotions, and categories
+- `/shop` searchable catalog with filters and sorting
+- `/products/[slug]` product detail page
+- `/cart` cart with client-side persistence
+- `/checkout` checkout flow
+- `/checkout/success` post-checkout confirmation page
+- `/account/login` customer login
+- `/account` customer account area
+- `/admin/login` admin login
+- `/admin/*` admin dashboard, products, categories, content, and orders
+
+## Local development
+
+1. Copy `.env.example` to `.env`
+2. Set `DATABASE_URL`, `NEXTAUTH_SECRET`, and integration keys if available
+3. Install dependencies
+4. Generate the Prisma client
+5. Sync the database schema
+6. Run the development server
 
 ```bash
+npm install
+npm run prisma:generate
+npx prisma db push
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If you want to create a development migration instead of a direct schema push:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run prisma:migrate
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Demo credentials
 
-## Learn More
+Admin:
+- Email: `admin@pvcasa.com.br`
+- Password: `admin123`
 
-To learn more about Next.js, take a look at the following resources:
+Customer:
+- Email: `ana@pvcasa.com`
+- Password: `cliente123`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Replace the admin credentials in production through `ADMIN_EMAIL` and `ADMIN_PASSWORD_HASH`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For the contact form to send emails automatically from the server, configure:
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM`
+- `CONTACT_EMAIL_TO`
 
-## Deploy on Vercel
+With these values present, `/contact` submits directly to `/api/contact` and the message is delivered server-side through Nodemailer without opening external mail apps.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Quality checks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run test
+npm run build
+```
+
+## Notes
+
+- Without `DATABASE_URL`, the project falls back to rich mock data for the storefront, account area, and admin dashboard.
+- Without `STRIPE_SECRET_KEY`, checkout stays functional in demo mode and redirects to the local success page.
+- Brand assets are served from `public/brand`, and the original import folder is no longer required.
+- Social icons are served from `public/social`.
