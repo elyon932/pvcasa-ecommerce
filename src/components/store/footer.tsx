@@ -17,14 +17,14 @@ export function Footer() {
       id="contato"
       className="border-t border-[color:var(--border)] bg-[color:var(--wood-dark)] text-[color:var(--sand)]"
     >
-      <div className="container-shell grid gap-10 py-14 lg:grid-cols-[1.2fr_0.9fr_0.9fr_0.9fr]">
-        <div className="space-y-4">
+      <div className="container-shell grid gap-10 py-12 sm:py-14 md:grid-cols-2 xl:grid-cols-[1.2fr_0.9fr_0.9fr_0.9fr]">
+        <div className="space-y-4 md:col-span-2 xl:col-span-1">
           <BrandLogo compact inverted />
           <p className="max-w-md text-sm leading-7 text-[color:rgba(255,245,235,0.82)]">
             {storeSettings.slogan}. Uma operação digital pensada para vender com clareza, apoiar o
             atendimento humano e manter a rotina da loja prática.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <a
               href={storeSettings.instagramUrl}
               target="_blank"
@@ -76,7 +76,7 @@ export function Footer() {
           <p>{storeSettings.addressLine}</p>
           <p>{storeSettings.cityState}</p>
           <p>{storeSettings.whatsappNumber}</p>
-          <p>{storeSettings.email}</p>
+          <p className="break-all sm:break-normal">{storeSettings.email}</p>
           <p>{storeSettings.supportHours}</p>
         </div>
 

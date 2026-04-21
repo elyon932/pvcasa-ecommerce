@@ -30,15 +30,15 @@ export async function AdminShell({
 
   return (
     <div className="min-h-screen bg-[color:var(--surface)]">
-      <div className="container-shell grid min-h-screen gap-8 py-8 lg:grid-cols-[260px_1fr]">
-        <aside className="rounded-[2rem] border border-[color:var(--border)] bg-[color:var(--wood-dark)] p-6 text-white">
+      <div className="container-shell grid min-h-screen gap-6 py-6 sm:gap-8 sm:py-8 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <aside className="rounded-[1.75rem] border border-[color:var(--border)] bg-[color:var(--wood-dark)] p-5 text-white sm:rounded-[2rem] sm:p-6">
           <div>
             <p className="font-serif text-3xl">PV Casa</p>
             <p className="mt-2 text-sm text-[color:rgba(255,255,255,0.72)]">
               Painel administrativo da operação digital
             </p>
           </div>
-          <nav className="mt-10 space-y-2">
+          <nav className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -54,14 +54,14 @@ export async function AdminShell({
             })}
           </nav>
         </aside>
-        <main className="space-y-8">
-          <header className="rounded-[2rem] border border-[color:var(--border)] bg-white p-8 shadow-[0_12px_30px_rgba(60,38,22,0.05)]">
+        <main className="min-w-0 space-y-6 sm:space-y-8">
+          <header className="rounded-[1.75rem] border border-[color:var(--border)] bg-white p-5 shadow-[0_12px_30px_rgba(60,38,22,0.05)] sm:rounded-[2rem] sm:p-8">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
                   Administração
                 </p>
-                <h1 className="mt-3 font-serif text-4xl text-[color:var(--wood-dark)]">
+                <h1 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-tight text-[color:var(--wood-dark)]">
                   {title}
                 </h1>
                 <p className="mt-3 max-w-2xl text-base leading-7 text-[color:var(--muted-foreground)]">

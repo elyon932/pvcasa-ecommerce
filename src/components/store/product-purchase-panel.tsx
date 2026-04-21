@@ -84,8 +84,8 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
 
   return (
     <>
-      <div className="mt-8 grid gap-3 md:grid-cols-3">
-        <div className="flex min-h-12 items-center justify-between rounded-full border border-[color:var(--border-strong)] bg-white px-3 text-sm font-semibold text-[color:var(--wood-dark)] shadow-[0_10px_24px_rgba(60,38,22,0.06)]">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex min-h-12 items-center justify-between rounded-full border border-[color:var(--border-strong)] bg-white px-3 text-sm font-semibold text-[color:var(--wood-dark)] shadow-[0_10px_24px_rgba(60,38,22,0.06)] sm:col-span-2 xl:col-span-1">
           <button
             type="button"
             onClick={decrementQuantity}
@@ -99,7 +99,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
           >
             <Minus className="size-4" />
           </button>
-          <span className="min-w-0 text-center">
+          <span className="min-w-0 px-3 text-center">
             <span className="hidden sm:inline">Quantidade: {quantity}</span>
             <span className="sm:hidden">Qtd. {quantity}</span>
           </span>
@@ -122,46 +122,46 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
           product={product}
           quantity={quantity}
           onAdded={() => setIsModalOpen(true)}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)]"
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--wood)] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)]"
         />
 
         <BuyNowButton
           product={product}
           quantity={quantity}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--copper)] transition hover:bg-[color:var(--wood)] hover:text-white"
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-center text-sm font-semibold text-[color:var(--copper)] transition hover:bg-[color:var(--wood)] hover:text-white sm:col-span-2 xl:col-span-1"
         />
       </div>
 
       {isModalOpen ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[color:rgba(34,22,15,0.42)] px-4">
-          <div className="surface-card relative w-full max-w-xl p-6 sm:p-8">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-[color:rgba(34,22,15,0.42)] px-4 py-6">
+          <div className="surface-card relative w-full max-w-xl p-5 sm:p-8">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)]"
+              className="absolute right-3 top-3 flex size-10 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)] sm:right-4 sm:top-4"
               aria-label="Fechar modal"
             >
               <X className="size-4" />
             </button>
 
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
+            <p className="pr-10 text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Produto adicionado
             </p>
-            <div className="mt-5 flex gap-4 rounded-[1.75rem] bg-[color:var(--surface)] p-4">
-              <div className="relative size-24 shrink-0 overflow-hidden rounded-[1.25rem]">
+            <div className="mt-5 flex flex-col gap-4 rounded-[1.75rem] bg-[color:var(--surface)] p-4 sm:flex-row">
+              <div className="relative aspect-square w-full overflow-hidden rounded-[1.25rem] sm:size-24 sm:shrink-0">
                 <Image
                   src={product.images[0]?.url ?? ""}
                   alt={product.images[0]?.alt ?? product.name}
                   fill
                   className="object-cover"
-                  sizes="96px"
+                  sizes="(max-width: 640px) 100vw, 96px"
                 />
               </div>
               <div className="min-w-0">
                 <p className="text-sm uppercase tracking-[0.2em] text-[color:var(--muted-foreground)]">
                   {product.category.name}
                 </p>
-                <h2 className="mt-2 font-serif text-2xl leading-tight text-[color:var(--wood-dark)]">
+                <h2 className="mt-2 font-serif text-xl leading-tight text-[color:var(--wood-dark)] sm:text-2xl">
                   {product.name}
                 </h2>
                 <p className="mt-3 text-sm text-[color:var(--muted-foreground)]">

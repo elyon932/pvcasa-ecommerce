@@ -132,46 +132,48 @@ export function ContactForm() {
           {errors.name ? <p className="text-sm text-[color:#b1412c]">{errors.name}</p> : null}
         </div>
 
-        <div className="space-y-2">
-          <label
-            htmlFor={`${formId}-email`}
-            className="text-sm font-medium text-[color:var(--wood-dark)]"
-          >
-            Email
-          </label>
-          <input
-            id={`${formId}-email`}
-            type="email"
-            value={form.email}
-            onChange={(event) => updateField("email", event.target.value)}
-            autoComplete="email"
-            placeholder="maria@exemplo.com"
-            className="w-full rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-[color:var(--copper)]"
-            aria-invalid={Boolean(errors.email)}
-          />
-          {errors.email ? <p className="text-sm text-[color:#b1412c]">{errors.email}</p> : null}
-        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <label
+              htmlFor={`${formId}-email`}
+              className="text-sm font-medium text-[color:var(--wood-dark)]"
+            >
+              Email
+            </label>
+            <input
+              id={`${formId}-email`}
+              type="email"
+              value={form.email}
+              onChange={(event) => updateField("email", event.target.value)}
+              autoComplete="email"
+              placeholder="maria@exemplo.com"
+              className="w-full rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-[color:var(--copper)]"
+              aria-invalid={Boolean(errors.email)}
+            />
+            {errors.email ? <p className="text-sm text-[color:#b1412c]">{errors.email}</p> : null}
+          </div>
 
-        <div className="space-y-2">
-          <label
-            htmlFor={`${formId}-whatsapp`}
-            className="text-sm font-medium text-[color:var(--wood-dark)]"
-          >
-            Whatsapp
-          </label>
-          <input
-            id={`${formId}-whatsapp`}
-            type="tel"
-            value={form.whatsapp}
-            onChange={(event) => updateField("whatsapp", formatWhatsapp(event.target.value))}
-            autoComplete="tel"
-            placeholder="(00) 00000-0000"
-            className="w-full rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-[color:var(--copper)]"
-            aria-invalid={Boolean(errors.whatsapp)}
-          />
-          {errors.whatsapp ? (
-            <p className="text-sm text-[color:#b1412c]">{errors.whatsapp}</p>
-          ) : null}
+          <div className="space-y-2">
+            <label
+              htmlFor={`${formId}-whatsapp`}
+              className="text-sm font-medium text-[color:var(--wood-dark)]"
+            >
+              Whatsapp
+            </label>
+            <input
+              id={`${formId}-whatsapp`}
+              type="tel"
+              value={form.whatsapp}
+              onChange={(event) => updateField("whatsapp", formatWhatsapp(event.target.value))}
+              autoComplete="tel"
+              placeholder="(00) 00000-0000"
+              className="w-full rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-[color:var(--copper)]"
+              aria-invalid={Boolean(errors.whatsapp)}
+            />
+            {errors.whatsapp ? (
+              <p className="text-sm text-[color:#b1412c]">{errors.whatsapp}</p>
+            ) : null}
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -186,7 +188,7 @@ export function ContactForm() {
             value={form.message}
             onChange={(event) => updateField("message", event.target.value)}
             rows={6}
-            placeholder="Conte como podemos ajudar com seu pedido, produto ou entrega."
+            placeholder="Conte como podemos ajudar você."
             className="w-full resize-none rounded-[1.5rem] border border-[color:var(--border-strong)] bg-[color:var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-[color:var(--copper)]"
             aria-invalid={Boolean(errors.message)}
           />
@@ -198,14 +200,14 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] disabled:opacity-60"
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] disabled:opacity-60 sm:w-auto"
         >
           {isSubmitting ? "Enviando..." : "Entrar em contato"}
         </button>
       </form>
 
       {toast ? (
-        <div className="pointer-events-none fixed bottom-5 right-5 z-[70] max-w-sm">
+        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-[70] sm:inset-x-auto sm:bottom-5 sm:right-5 sm:max-w-sm">
           <div
             className={`rounded-[1.5rem] border px-5 py-4 shadow-[0_18px_40px_rgba(60,38,22,0.14)] ${
               toast.tone === "success"
