@@ -12,21 +12,21 @@ export default function CartPage() {
 
   return (
     <StorefrontShell>
-      <div className="container-shell py-8 lg:py-10">
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px] lg:items-stretch">
-          <section className={`surface-card p-6 sm:p-8 ${items.length ? "" : "flex h-full flex-col"}`}>
-            <div className="flex items-end justify-between gap-4">
+      <div className="container-shell py-6 sm:py-8 lg:py-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <section className={`surface-card p-5 sm:p-8 ${items.length ? "" : "flex h-full flex-col"}`}>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
                   Carrinho
                 </p>
-                <h1 className="mt-2 font-serif text-4xl text-[color:var(--wood-dark)]">
+                <h1 className="mt-2 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-tight text-[color:var(--wood-dark)]">
                   Seus itens selecionados
                 </h1>
               </div>
               <Link
                 href="/shop"
-                className="rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)] sm:w-auto"
               >
                 Continuar comprando
               </Link>
@@ -40,7 +40,7 @@ export default function CartPage() {
                   return (
                     <div
                       key={item.id}
-                      className="grid gap-4 rounded-[1.75rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:grid-cols-[100px_1fr_auto]"
+                      className="grid gap-4 rounded-[1.5rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:grid-cols-[96px_minmax(0,1fr)] lg:grid-cols-[100px_minmax(0,1fr)_auto]"
                     >
                       <div className="relative aspect-square overflow-hidden rounded-[1.25rem]">
                         <Image
@@ -62,7 +62,7 @@ export default function CartPage() {
                           {formatCurrency(item.priceInCents)}
                         </p>
                       </div>
-                      <div className="flex flex-col items-start gap-3 sm:items-end">
+                      <div className="flex items-center justify-between gap-3 sm:col-span-2 lg:col-span-1 lg:flex-col lg:items-end">
                         <input
                           type="number"
                           min={1}
@@ -74,7 +74,7 @@ export default function CartPage() {
                               clampQuantityToStock(Number(event.target.value), item.stock),
                             )
                           }
-                          className="w-20 rounded-xl border border-[color:var(--border-strong)] bg-white px-3 py-2 text-sm"
+                          className="w-24 rounded-xl border border-[color:var(--border-strong)] bg-white px-3 py-2 text-sm"
                         />
                         <button
                           type="button"
@@ -88,7 +88,7 @@ export default function CartPage() {
                   );
                 })
               ) : (
-                <div className="w-full rounded-[1.75rem] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--surface)] p-10 text-center">
+                <div className="w-full rounded-[1.75rem] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--surface)] p-8 text-center sm:p-10">
                   <p className="font-serif text-3xl text-[color:var(--wood-dark)]">
                     Seu carrinho está vazio
                   </p>
@@ -100,22 +100,22 @@ export default function CartPage() {
             </div>
           </section>
 
-          <aside className={`surface-card p-6 ${items.length ? "h-fit" : "flex h-full flex-col"}`}>
+          <aside className={`surface-card p-5 sm:p-6 ${items.length ? "lg:sticky lg:top-28" : "flex h-full flex-col"}`}>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Resumo
             </p>
             <div className="mt-6 space-y-4 text-sm">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span>Subtotal</span>
                 <span>{formatCurrency(subtotalInCents)}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span>Frete</span>
                 <span>A calcular</span>
               </div>
             </div>
             <div className={`mt-6 border-t border-[color:var(--border)] pt-6 ${items.length ? "" : "mt-auto"}`}>
-              <div className="flex items-center justify-between text-lg font-semibold text-[color:var(--wood-dark)]">
+              <div className="flex items-center justify-between gap-4 text-lg font-semibold text-[color:var(--wood-dark)]">
                 <span>Total</span>
                 <span>{formatCurrency(subtotalInCents)}</span>
               </div>

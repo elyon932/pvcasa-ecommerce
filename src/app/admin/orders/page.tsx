@@ -22,7 +22,7 @@ export default async function AdminOrdersPage() {
     >
       <section className="space-y-5">
         {orders.map((order) => (
-          <article key={order.id} className="surface-card p-6">
+          <article key={order.id} className="surface-card p-5 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="font-semibold text-[color:var(--wood-dark)]">{order.orderNumber}</p>
@@ -30,14 +30,17 @@ export default async function AdminOrdersPage() {
                   {order.customerName} • {order.city}/{order.state} • {formatDate(order.createdAt)}
                 </p>
               </div>
-              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+              <div className="flex w-full flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center lg:w-auto lg:justify-end">
                 <p className="text-sm font-medium text-[color:var(--copper)]">
                   {formatOrderStatus(order.status)}
                 </p>
                 <p className="text-lg font-semibold text-[color:var(--wood-dark)]">
                   {formatCurrency(order.totalInCents)}
                 </p>
-                <form action={updateOrderStatusAction} className="flex items-center gap-3">
+                <form
+                  action={updateOrderStatusAction}
+                  className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center"
+                >
                   <input type="hidden" name="id" value={order.id} />
                   <select
                     name="status"
@@ -59,7 +62,7 @@ export default async function AdminOrdersPage() {
                 </form>
               </div>
             </div>
-            <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {order.items.map((item) => (
                 <div
                   key={item.id}

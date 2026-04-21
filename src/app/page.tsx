@@ -26,36 +26,36 @@ export default async function HomePage() {
 
   return (
     <StorefrontShell>
-      <div className="container-shell space-y-10 py-8 lg:space-y-14 lg:py-10">
+      <div className="container-shell space-y-10 py-6 sm:space-y-12 sm:py-8 lg:space-y-14 lg:py-10">
         <section className="space-y-5">
-          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
             Vitrine
           </p>
           <HeroCarousel slides={slides} />
         </section>
 
         <section className="space-y-5">
-          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
             Categorias
           </p>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {orderedCategories.map((category) => (
               <Link
                 key={category.id}
                 href={`/shop?category=${category.slug}`}
-                className="interactive-lift group relative block overflow-hidden rounded-[2rem] border border-[color:var(--border)] bg-white shadow-[0_18px_40px_rgba(60,38,22,0.06)]"
+                className="interactive-lift group relative block overflow-hidden rounded-[1.75rem] border border-[color:var(--border)] bg-white shadow-[0_18px_40px_rgba(60,38,22,0.06)] sm:rounded-[2rem]"
               >
-                <div className="relative aspect-[4/4.5] overflow-hidden">
+                <div className="relative aspect-[4/4.1] overflow-hidden sm:aspect-[4/4.5]">
                   <Image
                     src={category.imageUrl ?? slides[0].imageUrl}
                     alt={category.name}
                     fill
                     className="interactive-zoom object-cover"
-                    sizes="(max-width: 1280px) 100vw, 20vw"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 20vw"
                   />
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(34,22,15,0.08)_0%,rgba(34,22,15,0.68)_100%)]" />
-                  <div className="absolute bottom-4 left-4">
-                    <h2 className="font-serif text-3xl text-[color:var(--copper-light)] sm:text-[2rem]">
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h2 className="font-serif text-[1.75rem] leading-none text-[color:var(--copper-light)] sm:text-[2rem]">
                       {category.name}
                     </h2>
                   </div>
@@ -66,23 +66,23 @@ export default async function HomePage() {
         </section>
 
         <section className="space-y-6">
-          <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
             <div className="min-w-0">
-              <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
                 Destaques
               </p>
-              <h2 className="mt-2 font-serif text-[clamp(1.75rem,2.4vw,2.2rem)] leading-none text-[color:var(--wood-dark)]">
+              <h2 className="mt-2 font-serif text-[clamp(1.6rem,4.2vw,2.2rem)] leading-tight text-[color:var(--wood-dark)]">
                 Os itens mais procurados da semana
               </h2>
             </div>
             <Link
               href="/shop?featured=1"
-              className="whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+              className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)] md:w-auto"
             >
               Ver tudo
             </Link>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {featuredProducts.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
@@ -91,23 +91,23 @@ export default async function HomePage() {
 
         <section className="grid gap-10 xl:grid-cols-2">
           <div className="space-y-6">
-            <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
               <div className="min-w-0">
-                <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
                   Promoções
                 </p>
-                <h2 className="mt-2 font-serif text-[clamp(1.3rem,2.05vw,1.95rem)] leading-none text-[color:var(--wood-dark)]">
+                <h2 className="mt-2 font-serif text-[clamp(1.35rem,3.8vw,1.95rem)] leading-tight text-[color:var(--wood-dark)]">
                   Preços especiais para comprar agora
                 </h2>
               </div>
               <Link
                 href="/shop?sale=1"
-                className="whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+                className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)] md:w-auto"
               >
                 Ver tudo
               </Link>
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               {saleProducts.slice(0, 4).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -115,23 +115,23 @@ export default async function HomePage() {
           </div>
 
           <div className="space-y-6">
-            <div className="grid items-end gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
               <div className="min-w-0">
-                <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
                   Novidades
                 </p>
-                <h2 className="mt-2 font-serif text-[clamp(1.3rem,2.05vw,1.95rem)] leading-none text-[color:var(--wood-dark)]">
+                <h2 className="mt-2 font-serif text-[clamp(1.35rem,3.8vw,1.95rem)] leading-tight text-[color:var(--wood-dark)]">
                   Novos produtos para você
                 </h2>
               </div>
               <Link
                 href="/shop?sort=newest"
-                className="whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)]"
+                className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)] md:w-auto"
               >
                 Ver tudo
               </Link>
             </div>
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               {newProducts.slice(0, 4).map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

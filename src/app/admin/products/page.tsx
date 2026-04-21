@@ -16,9 +16,11 @@ export default async function AdminProductsPage() {
       title="Gestão de produtos"
       description={`Catálogo atual com ${products.length} itens disponíveis nesta visualização e ${metrics.orders} pedidos acompanhados no painel.`}
     >
-      <section className="grid gap-6 xl:grid-cols-[420px_1fr]">
-        <form action={saveProductAction} className="surface-card h-fit space-y-4 p-6">
-          <h2 className="font-serif text-3xl text-[color:var(--wood-dark)]">Novo produto</h2>
+      <section className="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
+        <form action={saveProductAction} className="surface-card h-fit space-y-4 p-5 sm:p-6">
+          <h2 className="font-serif text-[clamp(1.7rem,3.8vw,2rem)] leading-tight text-[color:var(--wood-dark)]">
+            Novo produto
+          </h2>
           {[
             { name: "name", label: "Nome" },
             { name: "sku", label: "SKU" },
@@ -61,9 +63,7 @@ export default async function AdminProductsPage() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-[color:var(--wood-dark)]">
-                Estoque
-              </label>
+              <label className="text-sm font-medium text-[color:var(--wood-dark)]">Estoque</label>
               <input
                 name="stock"
                 type="number"
@@ -94,10 +94,12 @@ export default async function AdminProductsPage() {
           </button>
         </form>
 
-        <div className="surface-card overflow-hidden p-6">
-          <h2 className="font-serif text-3xl text-[color:var(--wood-dark)]">Catálogo atual</h2>
-          <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-[color:var(--border)]">
-            <table className="min-w-full bg-white text-left text-sm">
+        <div className="surface-card overflow-hidden p-5 sm:p-6">
+          <h2 className="font-serif text-[clamp(1.7rem,3.8vw,2rem)] leading-tight text-[color:var(--wood-dark)]">
+            Catálogo atual
+          </h2>
+          <div className="mt-6 overflow-x-auto rounded-[1.5rem] border border-[color:var(--border)]">
+            <table className="min-w-[680px] bg-white text-left text-sm">
               <thead className="bg-[color:var(--surface)] text-[color:var(--muted-foreground)]">
                 <tr>
                   <th className="px-4 py-3">Produto</th>

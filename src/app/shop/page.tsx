@@ -75,10 +75,10 @@ export default async function ShopPage({
 
   return (
     <StorefrontShell>
-      <div className="container-shell py-8 lg:py-10">
-        <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
-          <aside className="surface-card h-fit p-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.32em] text-[color:var(--copper)]">
+      <div className="container-shell py-6 sm:py-8 lg:py-10">
+        <div className="grid gap-6 xl:grid-cols-[320px_1fr] xl:items-start">
+          <aside className="surface-card p-5 sm:p-6 xl:sticky xl:top-28">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
               Filtros
             </p>
             {params.q ? (
@@ -92,24 +92,26 @@ export default async function ShopPage({
           </aside>
 
           <section className="space-y-6">
-            <div>
-              <h2 className="font-serif text-4xl text-[color:var(--wood-dark)]">
-                {catalog.length} produtos encontrados
-              </h2>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 className="font-serif text-[clamp(1.8rem,4vw,2.4rem)] leading-tight text-[color:var(--wood-dark)]">
+                  {catalog.length} produtos encontrados
+                </h2>
+              </div>
             </div>
 
             {catalog.length ? (
               <>
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
                   {paginatedCatalog.map((product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
 
                 {totalPages > 1 ? (
-                  <div className="flex justify-end pt-2">
+                  <div className="flex justify-center pt-2 sm:justify-end">
                     <nav
-                      className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-2 py-2 shadow-[0_10px_24px_rgba(60,38,22,0.06)]"
+                      className="inline-flex max-w-full flex-wrap items-center justify-center gap-2 rounded-[1.5rem] border border-[color:var(--border)] bg-white px-2 py-2 shadow-[0_10px_24px_rgba(60,38,22,0.06)] sm:rounded-full"
                       aria-label="Paginação do catálogo"
                     >
                       {currentPage > 1 ? (
@@ -165,7 +167,7 @@ export default async function ShopPage({
                 ) : null}
               </>
             ) : (
-              <div className="surface-card p-10 text-center">
+              <div className="surface-card p-8 text-center sm:p-10">
                 <h3 className="font-serif text-3xl text-[color:var(--wood-dark)]">
                   Nenhum produto encontrado
                 </h3>

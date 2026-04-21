@@ -17,13 +17,13 @@ export default function CheckoutPage() {
 
   return (
     <StorefrontShell>
-      <div className="container-shell py-8 lg:py-10">
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-          <section className="surface-card p-6 sm:p-8">
+      <div className="container-shell py-6 sm:py-8 lg:py-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
+          <section className="surface-card p-5 sm:p-8">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Pagamento seguro
             </p>
-            <h1 className="mt-3 font-serif text-4xl text-[color:var(--wood-dark)]">
+            <h1 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-tight text-[color:var(--wood-dark)]">
               Finalização da compra
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-[color:var(--muted-foreground)]">
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
                 <button
                   type="submit"
                   disabled={isPending}
-                  className="rounded-full bg-[color:var(--wood)] px-6 py-3 text-sm font-semibold text-white hover:bg-[color:var(--wood-dark)] disabled:opacity-60"
+                  className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-6 py-3 text-sm font-semibold text-white hover:bg-[color:var(--wood-dark)] disabled:opacity-60 sm:w-auto"
                 >
                   {isPending ? "Iniciando pagamento..." : "Pagar com segurança"}
                 </button>
@@ -122,30 +122,30 @@ export default function CheckoutPage() {
             </form>
           </section>
 
-          <aside className="surface-card h-fit p-6">
+          <aside className="surface-card p-5 sm:p-6 lg:sticky lg:top-28">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Resumo do pedido
             </p>
             <div className="mt-6 space-y-3">
               {items.map((item) => (
-                <div key={item.id} className="flex items-center justify-between text-sm">
-                  <span>
+                <div key={item.id} className="flex items-start justify-between gap-4 text-sm">
+                  <span className="min-w-0">
                     {item.name} x{item.quantity}
                   </span>
-                  <span>{formatCurrency(item.priceInCents * item.quantity)}</span>
+                  <span className="shrink-0">{formatCurrency(item.priceInCents * item.quantity)}</span>
                 </div>
               ))}
             </div>
             <div className="mt-6 space-y-3 border-t border-[color:var(--border)] pt-6 text-sm">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span>Subtotal</span>
                 <span>{formatCurrency(subtotalInCents)}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-4">
                 <span>Frete</span>
                 <span>{formatCurrency(shippingInCents)}</span>
               </div>
-              <div className="flex items-center justify-between text-lg font-semibold text-[color:var(--wood-dark)]">
+              <div className="flex items-center justify-between gap-4 text-lg font-semibold text-[color:var(--wood-dark)]">
                 <span>Total</span>
                 <span>{formatCurrency(totalInCents)}</span>
               </div>

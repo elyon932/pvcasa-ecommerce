@@ -10,9 +10,11 @@ export default async function AdminCategoriesPage() {
       title="Gestão de categorias"
       description="Mantenha a taxonomia simples, clara e organizada para o catálogo da loja."
     >
-      <section className="grid gap-6 xl:grid-cols-[360px_1fr]">
-        <form action={createCategoryAction} className="surface-card h-fit space-y-4 p-6">
-          <h2 className="font-serif text-3xl text-[color:var(--wood-dark)]">Nova categoria</h2>
+      <section className="grid gap-6 xl:grid-cols-[360px_minmax(0,1fr)]">
+        <form action={createCategoryAction} className="surface-card h-fit space-y-4 p-5 sm:p-6">
+          <h2 className="font-serif text-[clamp(1.7rem,3.8vw,2rem)] leading-tight text-[color:var(--wood-dark)]">
+            Nova categoria
+          </h2>
           <div className="space-y-2">
             <label className="text-sm font-medium text-[color:var(--wood-dark)]">Nome</label>
             <input
@@ -38,9 +40,11 @@ export default async function AdminCategoriesPage() {
           </button>
         </form>
 
-        <div className="surface-card p-6">
-          <h2 className="font-serif text-3xl text-[color:var(--wood-dark)]">Estrutura atual</h2>
-          <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="surface-card p-5 sm:p-6">
+          <h2 className="font-serif text-[clamp(1.7rem,3.8vw,2rem)] leading-tight text-[color:var(--wood-dark)]">
+            Estrutura atual
+          </h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
             {categories.map((category) => (
               <article
                 key={category.id}

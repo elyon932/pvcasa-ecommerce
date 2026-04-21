@@ -23,24 +23,24 @@ export default async function AccountPage() {
 
   return (
     <StorefrontShell>
-      <div className="container-shell space-y-8 py-8 lg:py-10">
-        <div className="surface-card flex flex-col gap-6 p-8 lg:flex-row lg:items-start lg:justify-between">
+      <div className="container-shell space-y-6 py-6 sm:space-y-8 sm:py-8 lg:py-10">
+        <div className="surface-card flex flex-col gap-6 p-5 sm:p-8 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Minha conta
             </p>
-            <h1 className="mt-3 font-serif text-4xl text-[color:var(--wood-dark)]">
+            <h1 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-tight text-[color:var(--wood-dark)]">
               {customer.name}
             </h1>
-            <p className="mt-2 text-base text-[color:var(--muted-foreground)]">
+            <p className="mt-2 break-words text-base text-[color:var(--muted-foreground)]">
               {customer.email} • {customer.phone}
             </p>
           </div>
           <SignOutButton />
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-[0.9fr_1.1fr]">
-          <section className="surface-card p-6">
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <section className="surface-card p-5 sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Perfil
             </p>
@@ -59,7 +59,7 @@ export default async function AccountPage() {
             </div>
           </section>
 
-          <section className="surface-card p-6">
+          <section className="surface-card p-5 sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
               Histórico de pedidos
             </p>
@@ -68,7 +68,7 @@ export default async function AccountPage() {
                 orders.map((order) => (
                   <article
                     key={order.id}
-                    className="rounded-[1.5rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-5"
+                    className="rounded-[1.5rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:p-5"
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                       <div>
@@ -88,7 +88,7 @@ export default async function AccountPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
                       {order.items.map((item) => (
                         <div
                           key={item.id}

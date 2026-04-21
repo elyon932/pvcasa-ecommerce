@@ -1,0 +1,33 @@
+import { LoginForm } from "@/components/admin/login-form";
+
+export default function AdminLoginPage() {
+  return (
+    <main className="container-shell flex min-h-screen items-center justify-center py-8 sm:py-12">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-[1.9rem] border border-[color:var(--border)] bg-white shadow-[0_30px_90px_rgba(60,38,22,0.08)] lg:grid-cols-[1fr_440px] lg:rounded-[2.5rem]">
+        <section className="hidden bg-[linear-gradient(135deg,#5a2b10_0%,#8b4513_45%,#b87333_100%)] p-8 text-white lg:block xl:p-10">
+          <p className="text-xs uppercase tracking-[0.34em] text-[color:rgba(255,255,255,0.72)]">
+            Painel PV Casa
+          </p>
+          <h1 className="mt-4 font-serif text-[clamp(2.5rem,5vw,3.2rem)] leading-none">
+            Gestão prática para uma operação elegante
+          </h1>
+          <p className="mt-6 max-w-md text-base leading-7 text-[color:rgba(255,255,255,0.84)]">
+            Produtos, pedidos, categorias e conteúdo da home em uma área separada da vitrine
+            pública, com autenticação apropriada para o porte da loja.
+          </p>
+        </section>
+        <section className="p-5 sm:p-8 lg:p-10">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
+            Acesso restrito
+          </p>
+          <h2 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-tight text-[color:var(--wood-dark)]">
+            Entrar no painel
+          </h2>
+          <div className="mt-8">
+            <LoginForm />
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
