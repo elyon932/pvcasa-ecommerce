@@ -4,11 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 import { useCart } from "@/components/providers/cart-provider";
+import { getCheckoutShippingInCents } from "@/lib/checkout";
 import { formatCurrency } from "@/lib/format";
 import { clampQuantityToStock, getMaxSelectableQuantity } from "@/lib/quantity";
 
 export default function CartPage() {
   const { items, subtotalInCents, updateQuantity, removeItem } = useCart();
+  const shippingInCents = getCheckoutShippingInCents(items.length);
+  const totalInCents = subtotalInCents + shippingInCents;
 
   return (
     <StorefrontShell>
@@ -111,13 +114,13 @@ export default function CartPage() {
               </div>
               <div className="flex items-center justify-between gap-4">
                 <span>Frete</span>
-                <span>A calcular</span>
+                <span>{formatCurrency(shippingInCents)}</span>
               </div>
             </div>
             <div className={`mt-6 border-t border-[color:var(--border)] pt-6 ${items.length ? "" : "mt-auto"}`}>
               <div className="flex items-center justify-between gap-4 text-lg font-semibold text-[color:var(--wood-dark)]">
                 <span>Total</span>
-                <span>{formatCurrency(subtotalInCents)}</span>
+                <span>{formatCurrency(totalInCents)}</span>
               </div>
               {items.length ? (
                 <Link
