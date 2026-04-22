@@ -3,7 +3,6 @@
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard } from "lucide-react";
-import { useCart } from "@/components/providers/cart-provider";
 import type { Product } from "@/types/store";
 
 type BuyNowButtonProps = {
@@ -20,23 +19,12 @@ export function BuyNowButton({
   children,
 }: BuyNowButtonProps) {
   const router = useRouter();
-  const { clearCart, addItem } = useCart();
 
   return (
     <button
       type="button"
       onClick={() => {
-        clearCart();
-        addItem({
-          id: product.id,
-          slug: product.slug,
-          name: product.name,
-          image: product.images[0]?.url ?? "",
-          priceInCents: product.priceInCents,
-          stock: product.stock,
-          quantity,
-        });
-        router.push("/checkout");
+        router.push(`/checkout?slug=${product.slug}&quantity=${quantity}`);
       }}
       className={
         className ??
