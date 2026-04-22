@@ -1,7 +1,15 @@
-import { CustomerLoginForm } from "@/components/account/customer-login-form";
+import { CustomerAuthPanel } from "@/components/account/customer-auth-panel";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 
-export default function AccountLoginPage() {
+type AccountLoginPageProps = {
+  searchParams: Promise<{
+    callbackUrl?: string;
+  }>;
+};
+
+export default async function AccountLoginPage({ searchParams }: AccountLoginPageProps) {
+  const params = await searchParams;
+
   return (
     <StorefrontShell>
       <div className="container-shell py-8 sm:py-12">
@@ -23,7 +31,7 @@ export default function AccountLoginPage() {
               Cliente PV Casa
             </p>
             <h2 className="mt-3 font-serif text-[clamp(1.9rem,4vw,2.5rem)] leading-tight text-[color:var(--wood-dark)]">
-              Entrar na conta
+              Acesse ou crie sua conta
             </h2>
             <p className="mt-3 text-sm leading-6 text-[color:var(--muted-foreground)]">
               Credencial de teste disponível:{" "}
@@ -31,7 +39,7 @@ export default function AccountLoginPage() {
               com a senha padrão da base de demonstração.
             </p>
             <div className="mt-8">
-              <CustomerLoginForm />
+              <CustomerAuthPanel callbackUrl={params.callbackUrl ?? "/account"} />
             </div>
           </section>
         </div>

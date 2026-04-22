@@ -3,7 +3,11 @@
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 
-export function CustomerLoginForm() {
+type CustomerLoginFormProps = {
+  callbackUrl?: string;
+};
+
+export function CustomerLoginForm({ callbackUrl = "/account" }: CustomerLoginFormProps) {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -20,7 +24,7 @@ export function CustomerLoginForm() {
             redirect: false,
             email: String(formData.get("email") ?? ""),
             password: String(formData.get("password") ?? ""),
-            callbackUrl: "/account",
+            callbackUrl,
           });
 
           if (response?.error) {
@@ -28,7 +32,7 @@ export function CustomerLoginForm() {
             return;
           }
 
-          window.location.href = "/account";
+          window.location.href = response?.url ?? callbackUrl;
         });
       }}
     >
@@ -62,7 +66,7 @@ export function CustomerLoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] disabled:opacity-60"
       >
         {isPending ? "Entrando..." : "Entrar na conta"}
       </button>

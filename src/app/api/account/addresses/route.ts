@@ -1,0 +1,42 @@
+import { getServerSession } from "next-auth";
+import { NextResponse } from "next/server";
+import { updateCustomerAddress } from "@/lib/accounts";
+import { authOptions } from "@/lib/auth";
+import { addressFormSchema } from "@/lib/customer-validation";
+
+export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user.customerId || session.user.role !== "customer") {
+    return NextResponse.json({ error: "Sessão inválida." }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const parsed = addressFormSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        error: "Revise os dados do endereço.",
+        errors: Object.fromEntries(
+          parsed.error.issues.map((issue) => [String(issue.path[0] ?? "form"), issue.message]),
+        ),
+      },
+      { status: 400 },
+    );
+  }
+
+  try {
+    await updateCustomerAddress(
+      session.user.customerId,
+      typeof body.addressId === "string" && body.addressId ? body.addressId : null,
+      parsed.data,
+    );
+  } catch {
+    return NextResponse.json(
+      { error: "Não foi possível salvar o endereço agora." },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ success: true });
+}

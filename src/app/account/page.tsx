@@ -1,8 +1,11 @@
+import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { MapPinned, ReceiptText } from "lucide-react";
+import { AccountSectionCard } from "@/components/account/account-section-card";
 import { SignOutButton } from "@/components/common/sign-out-button";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
-import { getCustomerById } from "@/lib/accounts";
+import { getCustomerById, getPrimaryAddressLabel } from "@/lib/accounts";
 import { authOptions } from "@/lib/auth";
 import { formatCurrency, formatDate, formatOrderStatus } from "@/lib/format";
 import { getCustomerOrders } from "@/lib/storefront";
@@ -14,12 +17,13 @@ export default async function AccountPage() {
     redirect("/account/login");
   }
 
-  const customer = getCustomerById(session.user.customerId);
+  const customer = await getCustomerById(session.user.customerId);
   if (!customer) {
     redirect("/account/login");
   }
 
-  const orders = getCustomerOrders(customer.id);
+  const orders = await getCustomerOrders(customer.id);
+  const primaryAddress = customer.primaryAddress;
 
   return (
     <StorefrontShell>
@@ -40,37 +44,83 @@ export default async function AccountPage() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-          <section className="surface-card p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
-              Perfil
-            </p>
-            <div className="mt-6 space-y-4 text-sm text-[color:var(--muted-foreground)]">
-              <div>
-                <p className="font-semibold text-[color:var(--wood-dark)]">Endereço principal</p>
-                <p className="mt-1">
-                  {customer.addressLine}, {customer.city}/{customer.state}
-                </p>
-                <p>{customer.postalCode}</p>
+          <div className="grid gap-6">
+            <AccountSectionCard eyebrow="Perfil" title="Dados da conta">
+              <div className="grid gap-4 text-sm text-[color:var(--muted-foreground)] sm:grid-cols-2">
+                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
+                  <p className="font-semibold text-[color:var(--wood-dark)]">E-mail</p>
+                  <p className="mt-1 break-words">{customer.email}</p>
+                </div>
+                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
+                  <p className="font-semibold text-[color:var(--wood-dark)]">Telefone</p>
+                  <p className="mt-1">{customer.phone}</p>
+                </div>
+                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
+                  <p className="font-semibold text-[color:var(--wood-dark)]">Conta criada em</p>
+                  <p className="mt-1">{formatDate(customer.createdAt)}</p>
+                </div>
+                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
+                  <p className="font-semibold text-[color:var(--wood-dark)]">Pedidos registrados</p>
+                  <p className="mt-1">{orders.length}</p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-[color:var(--wood-dark)]">Resumo</p>
-                <p className="mt-1">{orders.length} pedidos registrados na conta.</p>
-              </div>
-            </div>
-          </section>
+            </AccountSectionCard>
 
-          <section className="surface-card p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
-              Histórico de pedidos
-            </p>
-            <div className="mt-6 space-y-4">
-              {orders.length ? (
-                orders.map((order) => (
+            <AccountSectionCard
+              eyebrow="Endereço"
+              title="Dados de entrega"
+              action={
+                <Link
+                  href="/account/addresses"
+                  className="inline-flex size-10 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)] hover:text-[color:var(--copper)]"
+                  aria-label="Gerenciar endereços"
+                >
+                  <MapPinned className="size-4" />
+                </Link>
+              }
+            >
+              {primaryAddress ? (
+                <div className="space-y-3 text-sm text-[color:var(--muted-foreground)]">
+                  <div>
+                    <p className="font-semibold text-[color:var(--wood-dark)]">
+                      {primaryAddress.label}
+                    </p>
+                    <p className="mt-1">{primaryAddress.recipientName}</p>
+                  </div>
+                  <div>
+                    <p>{getPrimaryAddressLabel(customer)}</p>
+                    <p>CEP {primaryAddress.postalCode}</p>
+                    {primaryAddress.complement ? <p>{primaryAddress.complement}</p> : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-[1.5rem] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--surface)] p-5 text-sm text-[color:var(--muted-foreground)]">
+                  Nenhum endereço principal cadastrado.
+                </div>
+              )}
+            </AccountSectionCard>
+          </div>
+
+          <AccountSectionCard
+            eyebrow="Histórico de pedidos"
+            title="Acompanhe suas compras"
+            action={
+              <Link
+                href="/account/orders"
+                className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-strong)] px-4 py-2 text-sm font-semibold text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)] hover:text-[color:var(--copper)]"
+              >
+                Detalhes
+              </Link>
+            }
+          >
+            {orders.length ? (
+              <div className="space-y-4">
+                {orders.slice(0, 3).map((order) => (
                   <article
                     key={order.id}
                     className="rounded-[1.5rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:p-5"
                   >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="font-semibold text-[color:var(--wood-dark)]">
                           {order.orderNumber}
@@ -88,28 +138,25 @@ export default async function AccountPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      {order.items.map((item) => (
-                        <div
-                          key={item.id}
-                          className="rounded-[1.25rem] bg-white px-4 py-3 text-sm text-[color:var(--muted-foreground)]"
-                        >
-                          <p className="font-medium text-[color:var(--wood-dark)]">{item.name}</p>
-                          <p className="mt-1">
-                            {item.quantity} unidade(s) • {formatCurrency(item.unitPriceInCents)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
                   </article>
-                ))
-              ) : (
-                <p className="text-sm text-[color:var(--muted-foreground)]">
-                  Você ainda não possui pedidos registrados.
-                </p>
-              )}
-            </div>
-          </section>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-[1.5rem] border border-dashed border-[color:var(--border-strong)] bg-[color:var(--surface)] p-6 text-sm text-[color:var(--muted-foreground)]">
+                <div className="flex items-start gap-3">
+                  <ReceiptText className="mt-0.5 size-4 text-[color:var(--copper)]" />
+                  <div>
+                    <p className="font-semibold text-[color:var(--wood-dark)]">
+                      Histórico vazio
+                    </p>
+                    <p className="mt-1">
+                      Seus pedidos aparecerão aqui assim que uma compra for iniciada.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </AccountSectionCard>
         </div>
       </div>
     </StorefrontShell>

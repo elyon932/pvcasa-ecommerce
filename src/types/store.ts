@@ -113,10 +113,25 @@ export type CustomerAccount = {
   email: string;
   phone: string;
   passwordHash: string;
-  addressLine: string;
+  createdAt: string;
+  addresses: CustomerAddress[];
+  primaryAddress: CustomerAddress | null;
+  source: "database" | "mock";
+};
+
+export type CustomerAddress = {
+  id: string;
+  label: string;
+  type: "PRIMARY" | "SECONDARY";
+  recipientName: string;
+  phone: string;
+  postalCode: string;
+  street: string;
+  number: string;
+  neighborhood: string;
   city: string;
   state: string;
-  postalCode: string;
+  complement?: string;
 };
 
 export type DashboardMetrics = {

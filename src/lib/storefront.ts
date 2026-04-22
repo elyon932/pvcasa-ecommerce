@@ -422,6 +422,43 @@ export function getCatalogFilters() {
   };
 }
 
-export function getCustomerOrders(customerId: string) {
+export async function getCustomerOrders(customerId: string) {
+  if (hasDatabase()) {
+    try {
+      const dbOrders = await prisma.order.findMany({
+        where: { customerId },
+        include: { items: true },
+        orderBy: { createdAt: "desc" },
+      });
+
+      if (dbOrders.length) {
+        return dbOrders.map((order) =>
+          normalizeOrder({
+            id: order.id,
+            customerId: order.customerId ?? order.customerEmail,
+            orderNumber: order.orderNumber,
+            status: order.status,
+            customerName: order.customerName,
+            customerEmail: order.customerEmail,
+            totalInCents: order.totalInCents,
+            city: order.deliveryCity,
+            state: order.deliveryState,
+            createdAt: order.createdAt.toISOString(),
+            items: order.items.map((item) => ({
+              id: item.id,
+              productId: item.productId ?? item.productSlug,
+              name: item.productName,
+              slug: item.productSlug,
+              quantity: item.quantity,
+              unitPriceInCents: item.unitPriceInCents,
+            })),
+          }),
+        );
+      }
+    } catch {
+      // Falls back to mock orders when the database is unavailable.
+    }
+  }
+
   return orders.filter((order) => order.customerId === customerId).map(normalizeOrder);
 }
