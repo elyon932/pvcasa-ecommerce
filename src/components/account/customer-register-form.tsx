@@ -11,6 +11,7 @@ import {
 type CustomerRegisterFormProps = {
   callbackUrl?: string;
   onSuccess?: () => void;
+  onSwitchToLogin?: () => void;
 };
 
 type RegisterFormState = {
@@ -44,6 +45,7 @@ const INITIAL_STATE: RegisterFormState = {
 export function CustomerRegisterForm({
   callbackUrl = "/account",
   onSuccess,
+  onSwitchToLogin,
 }: CustomerRegisterFormProps) {
   const [form, setForm] = useState(INITIAL_STATE);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -210,6 +212,17 @@ export function CustomerRegisterForm({
           {isPending ? "Criando conta..." : "Criar conta"}
         </button>
       </div>
+      {onSwitchToLogin ? (
+        <div className="sm:col-span-2">
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[color:var(--border-strong)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)] hover:text-[color:var(--copper)]"
+          >
+            Entrar na conta
+          </button>
+        </div>
+      ) : null}
     </form>
   );
 }

@@ -48,14 +48,6 @@ export default async function AccountPage() {
             <AccountSectionCard eyebrow="Perfil" title="Dados da conta">
               <div className="grid gap-4 text-sm text-[color:var(--muted-foreground)] sm:grid-cols-2">
                 <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
-                  <p className="font-semibold text-[color:var(--wood-dark)]">E-mail</p>
-                  <p className="mt-1 break-words">{customer.email}</p>
-                </div>
-                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
-                  <p className="font-semibold text-[color:var(--wood-dark)]">Telefone</p>
-                  <p className="mt-1">{customer.phone}</p>
-                </div>
-                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4">
                   <p className="font-semibold text-[color:var(--wood-dark)]">Conta criada em</p>
                   <p className="mt-1">{formatDate(customer.createdAt)}</p>
                 </div>
@@ -80,14 +72,14 @@ export default async function AccountPage() {
               }
             >
               {primaryAddress ? (
-                <div className="space-y-3 text-sm text-[color:var(--muted-foreground)]">
+                <div className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4 text-sm text-[color:var(--muted-foreground)]">
                   <div>
                     <p className="font-semibold text-[color:var(--wood-dark)]">
                       {primaryAddress.label}
                     </p>
                     <p className="mt-1">{primaryAddress.recipientName}</p>
                   </div>
-                  <div>
+                  <div className="mt-3">
                     <p>{getPrimaryAddressLabel(customer)}</p>
                     <p>CEP {primaryAddress.postalCode}</p>
                     {primaryAddress.complement ? <p>{primaryAddress.complement}</p> : null}
@@ -109,13 +101,13 @@ export default async function AccountPage() {
                 href="/account/orders"
                 className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-strong)] px-4 py-2 text-sm font-semibold text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)] hover:text-[color:var(--copper)]"
               >
-                Detalhes
+                Ver todos
               </Link>
             }
           >
             {orders.length ? (
               <div className="space-y-4">
-                {orders.slice(0, 3).map((order) => (
+                {orders.slice(0, 2).map((order) => (
                   <article
                     key={order.id}
                     className="rounded-[1.5rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:p-5"
@@ -137,6 +129,20 @@ export default async function AccountPage() {
                           {formatCurrency(order.totalInCents)}
                         </p>
                       </div>
+                    </div>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                      {order.items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-[1.25rem] bg-white px-4 py-4 text-sm text-[color:var(--muted-foreground)]"
+                        >
+                          <p className="font-semibold text-[color:var(--wood-dark)]">
+                            {item.name}
+                          </p>
+                          <p className="mt-1">Quantidade: {item.quantity}</p>
+                          <p className="mt-1">{formatCurrency(item.unitPriceInCents)}</p>
+                        </div>
+                      ))}
                     </div>
                   </article>
                 ))}

@@ -5,9 +5,13 @@ import { signIn } from "next-auth/react";
 
 type CustomerLoginFormProps = {
   callbackUrl?: string;
+  onSwitchToRegister?: () => void;
 };
 
-export function CustomerLoginForm({ callbackUrl = "/account" }: CustomerLoginFormProps) {
+export function CustomerLoginForm({
+  callbackUrl = "/account",
+  onSwitchToRegister,
+}: CustomerLoginFormProps) {
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -70,6 +74,15 @@ export function CustomerLoginForm({ callbackUrl = "/account" }: CustomerLoginFor
       >
         {isPending ? "Entrando..." : "Entrar na conta"}
       </button>
+      {onSwitchToRegister ? (
+        <button
+          type="button"
+          onClick={onSwitchToRegister}
+          className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[color:var(--border-strong)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] transition hover:border-[color:var(--copper)] hover:text-[color:var(--copper)]"
+        >
+          Cadastrar-se
+        </button>
+      ) : null}
     </form>
   );
 }

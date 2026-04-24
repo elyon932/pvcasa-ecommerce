@@ -28,16 +28,16 @@ enum CustomerAddressType {
 }
 
 model Category {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String?
-  imageUrl    String?
-  active      Boolean   @default(true)
-  displayOrder Int      @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
+  id           String    @id @default(cuid())
+  name         String
+  slug         String    @unique
+  description  String?
+  imageUrl     String?
+  active       Boolean   @default(true)
+  displayOrder Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  products     Product[]
 
   @@index([active, displayOrder])
 }
@@ -132,38 +132,38 @@ model Tag {
 }
 
 model ProductTag {
-  productId  String
-  tagId      String
-  createdAt  DateTime @default(now())
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  productId String
+  tagId     String
+  createdAt DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([productId, tagId])
   @@index([tagId])
 }
 
 model Order {
-  id               String      @id @default(cuid())
-  orderNumber      String      @unique
-  status           OrderStatus @default(PENDING)
-  subtotalInCents  Int
-  shippingInCents  Int
-  totalInCents     Int
-  paymentMethod    String
-  stripeSessionId  String?     @unique
-  customerId       String?
-  customerName     String
-  customerEmail    String
-  customerPhone    String
-  deliveryCity     String
-  deliveryState    String
-  deliveryAddress  String
+  id                 String      @id @default(cuid())
+  orderNumber        String      @unique
+  status             OrderStatus @default(PENDING)
+  subtotalInCents    Int
+  shippingInCents    Int
+  totalInCents       Int
+  paymentMethod      String
+  stripeSessionId    String?     @unique
+  customerId         String?
+  customerName       String
+  customerEmail      String
+  customerPhone      String
+  deliveryCity       String
+  deliveryState      String
+  deliveryAddress    String
   deliveryPostalCode String?
-  deliveryNotes    String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  customer         Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items            OrderItem[]
+  deliveryNotes      String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  customer           Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items              OrderItem[]
 
   @@index([status, createdAt])
   @@index([customerEmail, createdAt])
@@ -171,16 +171,16 @@ model Order {
 }
 
 model OrderItem {
-  id            String  @id @default(cuid())
-  productName   String
-  productSlug   String
-  quantity      Int
+  id               String   @id @default(cuid())
+  productName      String
+  productSlug      String
+  quantity         Int
   unitPriceInCents Int
-  totalInCents  Int
-  orderId       String
-  productId     String?
-  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product       Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  totalInCents     Int
+  orderId          String
+  productId        String?
+  order            Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
 
   @@index([orderId])
   @@index([productId])
