@@ -122,7 +122,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
           product={product}
           quantity={quantity}
           onAdded={() => setIsModalOpen(true)}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--wood)] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)]"
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[color:var(--wood)] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] sm:col-span-2 xl:col-span-1"
         />
 
         <BuyNowButton
