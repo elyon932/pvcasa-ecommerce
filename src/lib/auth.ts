@@ -3,24 +3,45 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { getCustomerByEmail } from "@/lib/accounts";
 
-const fallbackHash =
-  process.env.ADMIN_PASSWORD_HASH ??
+const DEVELOPMENT_ADMIN_EMAIL = "admin@pvcasa.com.br";
+const DEVELOPMENT_ADMIN_PASSWORD_HASH =
   "$2b$12$lgjLXqNCd2ZrnBXOiCaR1Og8IafxIAI8kJ7.dU6xWwrPG8zybkSl2";
+
+function getAdminCredentialsConfig() {
+  const email = process.env.ADMIN_EMAIL?.toLowerCase().trim();
+  const passwordHash = process.env.ADMIN_PASSWORD_HASH?.trim();
+
+  if (email && passwordHash) {
+    return { email, passwordHash };
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    return {
+      email: DEVELOPMENT_ADMIN_EMAIL,
+      passwordHash: DEVELOPMENT_ADMIN_PASSWORD_HASH,
+    };
+  }
+
+  return null;
+}
 
 export async function authorizeAdminCredentials(email: string, password: string) {
   const normalizedEmail = email.toLowerCase().trim();
-  const adminEmail = (process.env.ADMIN_EMAIL ?? "admin@pvcasa.com.br")
-    .toLowerCase()
-    .trim();
-  const isValidPassword = await bcrypt.compare(password, fallbackHash);
+  const adminCredentials = getAdminCredentialsConfig();
 
-  if (normalizedEmail !== adminEmail || !isValidPassword) {
+  if (!adminCredentials) {
+    return null;
+  }
+
+  const isValidPassword = await bcrypt.compare(password, adminCredentials.passwordHash);
+
+  if (normalizedEmail !== adminCredentials.email || !isValidPassword) {
     return null;
   }
 
   return {
     id: "pvcasa-admin",
-    email: adminEmail,
+    email: adminCredentials.email,
     name: "PV Casa Admin",
     role: "admin",
   };

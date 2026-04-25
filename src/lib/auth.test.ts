@@ -1,10 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   authorizeAdminCredentials,
   authorizeCustomerCredentials,
 } from "@/lib/auth";
 
 describe("auth helpers", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+    vi.stubEnv("NODE_ENV", "development");
+    delete process.env.ADMIN_EMAIL;
+    delete process.env.ADMIN_PASSWORD_HASH;
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    delete process.env.ADMIN_EMAIL;
+    delete process.env.ADMIN_PASSWORD_HASH;
+  });
+
   it("authorizes the admin with the default development credentials", async () => {
     const admin = await authorizeAdminCredentials("admin@pvcasa.com.br", "admin123");
 
@@ -16,6 +29,14 @@ describe("auth helpers", () => {
 
   it("rejects invalid admin credentials", async () => {
     const admin = await authorizeAdminCredentials("admin@pvcasa.com.br", "wrong-password");
+    expect(admin).toBeNull();
+  });
+
+  it("blocks fallback admin credentials outside development", async () => {
+    vi.stubEnv("NODE_ENV", "test");
+
+    const admin = await authorizeAdminCredentials("admin@pvcasa.com.br", "admin123");
+
     expect(admin).toBeNull();
   });
 

@@ -1,34 +1,10 @@
 import { dashboardMetrics, orders } from "@/data/mockStore";
 import { prisma } from "@/lib/prisma";
-import { getCatalog, normalizeCopy } from "@/lib/storefront";
+import { getCatalog } from "@/lib/storefront";
 import type { DashboardMetrics, Order, Product } from "@/types/store";
 
 function hasDatabase() {
   return Boolean(process.env.DATABASE_URL);
-}
-
-function normalizeOrder(order: Order): Order {
-  return {
-    ...order,
-    customerName: normalizeCopy(order.customerName),
-    city: normalizeCopy(order.city),
-    state: normalizeCopy(order.state),
-    items: order.items.map((item) => ({
-      ...item,
-      name: normalizeCopy(item.name),
-    })),
-  };
-}
-
-function normalizeMetrics(metrics: DashboardMetrics): DashboardMetrics {
-  return {
-    ...metrics,
-    bestSellers: metrics.bestSellers.map((item) => ({
-      ...item,
-      name: normalizeCopy(item.name),
-    })),
-    recentOrders: metrics.recentOrders.map(normalizeOrder),
-  };
 }
 
 export async function getAdminProducts(): Promise<Product[]> {
@@ -37,7 +13,7 @@ export async function getAdminProducts(): Promise<Product[]> {
 
 export async function getAdminOrders(): Promise<Order[]> {
   if (!hasDatabase()) {
-    return orders.map(normalizeOrder);
+    return orders;
   }
 
   try {
@@ -48,7 +24,7 @@ export async function getAdminOrders(): Promise<Order[]> {
     });
 
     if (!dbOrders.length) {
-      return orders.map(normalizeOrder);
+      return orders;
     }
 
     return dbOrders.map((order) => ({
@@ -56,29 +32,29 @@ export async function getAdminOrders(): Promise<Order[]> {
       customerId: order.customerEmail,
       orderNumber: order.orderNumber,
       status: order.status,
-      customerName: normalizeCopy(order.customerName),
+      customerName: order.customerName,
       customerEmail: order.customerEmail,
       totalInCents: order.totalInCents,
-      city: normalizeCopy(order.deliveryCity),
-      state: normalizeCopy(order.deliveryState),
+      city: order.deliveryCity,
+      state: order.deliveryState,
       createdAt: order.createdAt.toISOString(),
       items: order.items.map((item) => ({
         id: item.id,
         productId: item.productId ?? item.productSlug,
-        name: normalizeCopy(item.productName),
+        name: item.productName,
         slug: item.productSlug,
         quantity: item.quantity,
         unitPriceInCents: item.unitPriceInCents,
       })),
     }));
   } catch {
-    return orders.map(normalizeOrder);
+    return orders;
   }
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   if (!hasDatabase()) {
-    return normalizeMetrics(dashboardMetrics);
+    return dashboardMetrics;
   }
 
   try {
@@ -110,7 +86,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     });
 
     if (!ordersCount) {
-      return normalizeMetrics(dashboardMetrics);
+      return dashboardMetrics;
     }
 
     return {
@@ -119,7 +95,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       averageTicketInCents: Math.round(revenueAgg._avg.totalInCents ?? 0),
       returningCustomers: Math.max(Math.round(ordersCount * 0.28), 1),
       bestSellers: bestSellersRaw.map((item) => ({
-        name: normalizeCopy(item.productName),
+        name: item.productName,
         quantity: item._sum.quantity ?? 0,
         revenueInCents: item._sum.totalInCents ?? 0,
       })),
@@ -128,16 +104,16 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
         customerId: order.customerEmail,
         orderNumber: order.orderNumber,
         status: order.status,
-        customerName: normalizeCopy(order.customerName),
+        customerName: order.customerName,
         customerEmail: order.customerEmail,
         totalInCents: order.totalInCents,
-        city: normalizeCopy(order.deliveryCity),
-        state: normalizeCopy(order.deliveryState),
+        city: order.deliveryCity,
+        state: order.deliveryState,
         createdAt: order.createdAt.toISOString(),
         items: order.items.map((item) => ({
           id: item.id,
           productId: item.productId ?? item.productSlug,
-          name: normalizeCopy(item.productName),
+          name: item.productName,
           slug: item.productSlug,
           quantity: item.quantity,
           unitPriceInCents: item.unitPriceInCents,
@@ -145,6 +121,6 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
       })),
     };
   } catch {
-    return normalizeMetrics(dashboardMetrics);
+    return dashboardMetrics;
   }
 }

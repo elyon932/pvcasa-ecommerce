@@ -5,50 +5,12 @@ import {
   products as productDefinitions,
 } from "@/data/mockStore";
 import { prisma } from "@/lib/prisma";
-import type { Category, HeroSlide, Order, Product, ProductFilters } from "@/types/store";
+import type { Category, HeroSlide, Product, ProductFilters } from "@/types/store";
 
 const categoryOrder = ["bed", "table", "bath", "decor", "kids"] as const;
 
-const brokenTextMap: Array<[string, string]> = [
-  ["Ã¡", "á"],
-  ["Ã ", "à"],
-  ["Ã¢", "â"],
-  ["Ã£", "ã"],
-  ["Ã§", "ç"],
-  ["Ã©", "é"],
-  ["Ãª", "ê"],
-  ["Ã­", "í"],
-  ["Ã³", "ó"],
-  ["Ã´", "ô"],
-  ["Ãµ", "õ"],
-  ["Ãº", "ú"],
-  ["Ã¼", "ü"],
-  ["Ã", "Á"],
-  ["Ã€", "À"],
-  ["Ã‚", "Â"],
-  ["Ãƒ", "Ã"],
-  ["Ã‡", "Ç"],
-  ["Ã‰", "É"],
-  ["ÃŠ", "Ê"],
-  ["Ã", "Í"],
-  ["Ã“", "Ó"],
-  ["Ã”", "Ô"],
-  ["Ã•", "Õ"],
-  ["Ãš", "Ú"],
-  ["â€¢", "•"],
-  ["â€¹", "‹"],
-  ["â€º", "›"],
-];
-
 function hasDatabase() {
   return Boolean(process.env.DATABASE_URL);
-}
-
-export function normalizeCopy(value: string) {
-  return brokenTextMap.reduce(
-    (result, [broken, correct]) => result.replaceAll(broken, correct),
-    value,
-  );
 }
 
 function resolveCategoryFromDefinition(slug: string): Category {
@@ -57,8 +19,8 @@ function resolveCategoryFromDefinition(slug: string): Category {
   return {
     id: category.id,
     slug: category.slug,
-    name: normalizeCopy(category.name),
-    description: normalizeCopy(category.description),
+    name: category.name,
+    description: category.description,
     imageUrl: category.imageUrl,
   };
 }
@@ -88,17 +50,9 @@ function getCategoryOrderIndex(slug: string) {
 export function resolveProduct(product: (typeof productDefinitions)[number]): Product {
   return {
     ...product,
-    name: normalizeCopy(product.name),
-    shortDescription: normalizeCopy(product.shortDescription),
-    description: normalizeCopy(product.description),
-    brand: normalizeCopy(product.brand),
-    material: normalizeCopy(product.material),
-    tags: product.tags.map(normalizeCopy),
+    source: "mock",
     category: resolveCategoryFromDefinition(product.categorySlug),
-    images: product.images.map((image) => ({
-      ...image,
-      alt: normalizeCopy(image.alt),
-    })),
+    images: product.images,
   };
 }
 
@@ -212,9 +166,10 @@ async function getDatabaseCatalog(): Promise<Product[] | null> {
       id: product.id,
       slug: product.slug,
       sku: product.sku,
-      name: normalizeCopy(product.name),
-      shortDescription: normalizeCopy(product.shortDescription),
-      description: normalizeCopy(product.description),
+      source: "database",
+      name: product.name,
+      shortDescription: product.shortDescription,
+      description: product.description,
       priceInCents: product.priceInCents,
       compareAtCents: product.compareAtCents ?? undefined,
       shippingInCents:
@@ -228,13 +183,13 @@ async function getDatabaseCatalog(): Promise<Product[] | null> {
         typeof product.compareAtCents === "number"
           ? product.compareAtCents > product.priceInCents
           : false,
-      brand: normalizeCopy(product.brand ?? "PV Casa"),
-      material: normalizeCopy(product.material ?? "Algodão"),
+      brand: product.brand ?? "PV Casa",
+      material: product.material ?? "Algodão",
       category: {
         id: product.category.id,
         slug: product.category.slug,
-        name: normalizeCopy(product.category.name),
-        description: normalizeCopy(product.category.description ?? ""),
+        name: product.category.name,
+        description: product.category.description ?? "",
         imageUrl:
           categoryDefinitions.find((entry) => entry.slug === product.category.slug)?.imageUrl ??
           categoryDefinitions[0]?.imageUrl,
@@ -242,32 +197,19 @@ async function getDatabaseCatalog(): Promise<Product[] | null> {
       colors: [],
       room: "bedroom",
       audience: "family",
-      tags: product.tags.map(normalizeCopy),
+      tags: product.tags,
       images:
         product.images.length > 0
           ? product.images.map((image) => ({
               id: image.id,
               url: image.url,
-              alt: normalizeCopy(image.alt),
+              alt: image.alt,
             }))
           : productDefinitions[0].images,
     }));
   } catch {
     return null;
   }
-}
-
-function normalizeOrder(order: Order): Order {
-  return {
-    ...order,
-    customerName: normalizeCopy(order.customerName),
-    city: normalizeCopy(order.city),
-    state: normalizeCopy(order.state),
-    items: order.items.map((item) => ({
-      ...item,
-      name: normalizeCopy(item.name),
-    })),
-  };
 }
 
 export async function getCatalog(filters: ProductFilters = {}) {
@@ -316,13 +258,9 @@ export async function getProductBySlug(slug: string) {
 
 export async function getCategories() {
   if (!hasDatabase()) {
-    return [...categoryDefinitions]
-      .map((category) => ({
-        ...category,
-        name: normalizeCopy(category.name),
-        description: normalizeCopy(category.description),
-      }))
-      .sort((left, right) => getCategoryOrderIndex(left.slug) - getCategoryOrderIndex(right.slug));
+    return [...categoryDefinitions].sort(
+      (left, right) => getCategoryOrderIndex(left.slug) - getCategoryOrderIndex(right.slug),
+    );
   }
 
   try {
@@ -338,20 +276,16 @@ export async function getCategories() {
         return {
           id: category.id,
           slug: category.slug,
-          name: normalizeCopy(category.name),
-          description: normalizeCopy(category.description ?? ""),
+          name: category.name,
+          description: category.description ?? "",
           imageUrl: fallback?.imageUrl,
         };
       })
       .sort((left, right) => getCategoryOrderIndex(left.slug) - getCategoryOrderIndex(right.slug));
   } catch {
-    return [...categoryDefinitions]
-      .map((category) => ({
-        ...category,
-        name: normalizeCopy(category.name),
-        description: normalizeCopy(category.description),
-      }))
-      .sort((left, right) => getCategoryOrderIndex(left.slug) - getCategoryOrderIndex(right.slug));
+    return [...categoryDefinitions].sort(
+      (left, right) => getCategoryOrderIndex(left.slug) - getCategoryOrderIndex(right.slug),
+    );
   }
 }
 
@@ -432,33 +366,31 @@ export async function getCustomerOrders(customerId: string) {
       });
 
       if (dbOrders.length) {
-        return dbOrders.map((order) =>
-          normalizeOrder({
-            id: order.id,
-            customerId: order.customerId ?? order.customerEmail,
-            orderNumber: order.orderNumber,
-            status: order.status,
-            customerName: order.customerName,
-            customerEmail: order.customerEmail,
-            totalInCents: order.totalInCents,
-            city: order.deliveryCity,
-            state: order.deliveryState,
-            createdAt: order.createdAt.toISOString(),
-            items: order.items.map((item) => ({
-              id: item.id,
-              productId: item.productId ?? item.productSlug,
-              name: item.productName,
-              slug: item.productSlug,
-              quantity: item.quantity,
-              unitPriceInCents: item.unitPriceInCents,
-            })),
-          }),
-        );
+        return dbOrders.map((order) => ({
+          id: order.id,
+          customerId: order.customerId ?? order.customerEmail,
+          orderNumber: order.orderNumber,
+          status: order.status,
+          customerName: order.customerName,
+          customerEmail: order.customerEmail,
+          totalInCents: order.totalInCents,
+          city: order.deliveryCity,
+          state: order.deliveryState,
+          createdAt: order.createdAt.toISOString(),
+          items: order.items.map((item) => ({
+            id: item.id,
+            productId: item.productId ?? item.productSlug,
+            name: item.productName,
+            slug: item.productSlug,
+            quantity: item.quantity,
+            unitPriceInCents: item.unitPriceInCents,
+          })),
+        }));
       }
     } catch {
       // Falls back to mock orders when the database is unavailable.
     }
   }
 
-  return orders.filter((order) => order.customerId === customerId).map(normalizeOrder);
+  return orders.filter((order) => order.customerId === customerId);
 }

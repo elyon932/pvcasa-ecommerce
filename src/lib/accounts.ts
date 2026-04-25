@@ -1,39 +1,16 @@
 import bcrypt from "bcryptjs";
 import type { CustomerAddressType } from "@prisma/client";
-import { customerAccounts, orders } from "@/data/mockStore";
+import { customerAccounts } from "@/data/mockStore";
 import type { AddressFormInput, RegisterCustomerInput } from "@/lib/customer-validation";
 import { prisma } from "@/lib/prisma";
-import { normalizeCopy } from "@/lib/storefront";
-import type { CustomerAccount, CustomerAddress } from "@/types/store";
+import type { CustomerAccount } from "@/types/store";
 
 function hasDatabase() {
   return Boolean(process.env.DATABASE_URL);
 }
 
-function normalizeAddress(address: CustomerAddress): CustomerAddress {
-  return {
-    ...address,
-    label: normalizeCopy(address.label),
-    recipientName: normalizeCopy(address.recipientName),
-    street: normalizeCopy(address.street),
-    neighborhood: normalizeCopy(address.neighborhood),
-    city: normalizeCopy(address.city),
-    state: normalizeCopy(address.state),
-    complement: address.complement ? normalizeCopy(address.complement) : undefined,
-  };
-}
-
-function normalizeCustomer(customer: CustomerAccount): CustomerAccount {
-  return {
-    ...customer,
-    name: normalizeCopy(customer.name),
-    addresses: customer.addresses.map(normalizeAddress),
-    primaryAddress: customer.primaryAddress ? normalizeAddress(customer.primaryAddress) : null,
-  };
-}
-
 function mapMockCustomer(customer: (typeof customerAccounts)[number]): CustomerAccount {
-  return normalizeCustomer(customer);
+  return customer;
 }
 
 function mapDbCustomer(customer: {
@@ -73,7 +50,7 @@ function mapDbCustomer(customer: {
     complement: address.complement ?? undefined,
   }));
 
-  return normalizeCustomer({
+  return {
     id: customer.id,
     name: customer.name,
     email: customer.email,
@@ -83,7 +60,7 @@ function mapDbCustomer(customer: {
     addresses,
     primaryAddress: addresses.find((address) => address.type === "PRIMARY") ?? null,
     source: "database",
-  });
+  };
 }
 
 async function findDbCustomerByEmail(email: string) {
@@ -146,26 +123,6 @@ export async function getCustomerById(id: string) {
   return customer ? mapMockCustomer(customer) : null;
 }
 
-export async function getOrdersByCustomerId(customerId: string) {
-  if (hasDatabase()) {
-    try {
-      const dbOrders = await prisma.order.findMany({
-        where: { customerId },
-        include: { items: true },
-        orderBy: { createdAt: "desc" },
-      });
-
-      if (dbOrders.length) {
-        return dbOrders;
-      }
-    } catch {
-      // Falls back to mock orders when the database is unavailable.
-    }
-  }
-
-  return orders.filter((order) => order.customerId === customerId);
-}
-
 export async function createCustomerAccount(input: RegisterCustomerInput) {
   if (!hasDatabase()) {
     throw new Error("DATABASE_REQUIRED");
@@ -224,6 +181,20 @@ export async function updateCustomerAddress(
   }
 
   await prisma.$transaction(async (tx) => {
+    if (addressId) {
+      const existingAddress = await tx.customerAddress.findFirst({
+        where: {
+          id: addressId,
+          customerId,
+        },
+        select: { id: true },
+      });
+
+      if (!existingAddress) {
+        throw new Error("ADDRESS_NOT_FOUND");
+      }
+    }
+
     if (input.type === "PRIMARY") {
       await tx.customerAddress.updateMany({
         where: { customerId, type: "PRIMARY" },

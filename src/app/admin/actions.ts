@@ -1,8 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { categories as mockCategories } from "@/data/mockStore";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 
@@ -43,7 +45,17 @@ function buildTagPayload(parsed: z.infer<typeof productSchema>) {
   );
 }
 
+async function requireAdminSession() {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user || session.user.role !== "admin") {
+    throw new Error("UNAUTHORIZED");
+  }
+}
+
 export async function saveProductAction(formData: FormData) {
+  await requireAdminSession();
+
   if (!process.env.DATABASE_URL) {
     revalidatePath("/admin/products");
     return;
@@ -157,6 +169,8 @@ export async function saveProductAction(formData: FormData) {
 }
 
 export async function deleteProductAction(formData: FormData) {
+  await requireAdminSession();
+
   if (!process.env.DATABASE_URL) {
     revalidatePath("/admin/products");
     return;
@@ -169,6 +183,8 @@ export async function deleteProductAction(formData: FormData) {
 }
 
 export async function createCategoryAction(formData: FormData) {
+  await requireAdminSession();
+
   if (!process.env.DATABASE_URL) {
     revalidatePath("/admin/categories");
     return;
@@ -192,6 +208,8 @@ export async function createCategoryAction(formData: FormData) {
 }
 
 export async function deleteCategoryAction(formData: FormData) {
+  await requireAdminSession();
+
   if (!process.env.DATABASE_URL) {
     revalidatePath("/admin/categories");
     return;
@@ -203,6 +221,8 @@ export async function deleteCategoryAction(formData: FormData) {
 }
 
 export async function updateOrderStatusAction(formData: FormData) {
+  await requireAdminSession();
+
   if (!process.env.DATABASE_URL) {
     revalidatePath("/admin/orders");
     return;

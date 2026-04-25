@@ -125,7 +125,7 @@ export async function POST(request: Request) {
             quantity: item.quantity,
             unitPriceInCents: item.product.priceInCents,
             totalInCents: item.product.priceInCents * item.quantity,
-            productId: null,
+            productId: item.product.source === "database" ? item.product.id : null,
           })),
         },
       },

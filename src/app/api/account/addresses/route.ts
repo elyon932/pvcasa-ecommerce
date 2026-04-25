@@ -31,7 +31,14 @@ export async function POST(request: Request) {
       typeof body.addressId === "string" && body.addressId ? body.addressId : null,
       parsed.data,
     );
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "ADDRESS_NOT_FOUND") {
+      return NextResponse.json(
+        { error: "Endereço não encontrado para este usuário." },
+        { status: 404 },
+      );
+    }
+
     return NextResponse.json(
       { error: "Não foi possível salvar o endereço agora." },
       { status: 500 },

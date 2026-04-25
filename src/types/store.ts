@@ -48,6 +48,7 @@ export type Product = {
   id: string;
   slug: string;
   sku: string;
+  source: "database" | "mock";
   name: string;
   shortDescription: string;
   description: string;
