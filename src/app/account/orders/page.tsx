@@ -20,7 +20,7 @@ export default async function AccountOrdersPage() {
     redirect("/account/login");
   }
 
-  const orders = await getCustomerOrders(customer.id);
+  const orders = await getCustomerOrders(customer.id, customer.email);
 
   return (
     <StorefrontShell>

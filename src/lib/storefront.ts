@@ -356,11 +356,15 @@ export function getCatalogFilters() {
   };
 }
 
-export async function getCustomerOrders(customerId: string) {
+export async function getCustomerOrders(customerId: string, customerEmail?: string) {
   if (hasDatabase()) {
     try {
       const dbOrders = await prisma.order.findMany({
-        where: { customerId },
+        where: customerEmail
+          ? {
+              OR: [{ customerId }, { customerEmail }],
+            }
+          : { customerId },
         include: { items: true },
         orderBy: { createdAt: "desc" },
       });
@@ -392,5 +396,7 @@ export async function getCustomerOrders(customerId: string) {
     }
   }
 
-  return orders.filter((order) => order.customerId === customerId);
+  return orders.filter(
+    (order) => order.customerId === customerId || (customerEmail ? order.customerEmail === customerEmail : false),
+  );
 }

@@ -22,7 +22,7 @@ export default async function AccountPage() {
     redirect("/account/login");
   }
 
-  const orders = await getCustomerOrders(customer.id);
+  const orders = await getCustomerOrders(customer.id, customer.email);
   const primaryAddress = customer.primaryAddress;
 
   return (
