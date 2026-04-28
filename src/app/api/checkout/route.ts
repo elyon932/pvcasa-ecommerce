@@ -5,6 +5,7 @@ import { getCustomerById, hasCompleteCheckoutProfile } from "@/lib/accounts";
 import { authOptions } from "@/lib/auth";
 import { getCheckoutShippingInCents } from "@/lib/checkout";
 import { prisma } from "@/lib/prisma";
+import { jsonError, parseJsonBody } from "@/lib/request";
 import { getCatalog } from "@/lib/storefront";
 import { buildCheckoutUrls, getStripe } from "@/lib/stripe";
 import { createOrderNumber } from "@/lib/utils";
@@ -13,13 +14,13 @@ const checkoutSchema = z.object({
   items: z
     .array(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
         quantity: z.number().int().positive(),
       }),
     )
     .min(1),
   source: z.enum(["cart", "buy-now"]).default("cart"),
-  cancelPath: z.string().optional(),
+  cancelPath: z.string().trim().regex(/^\/(?!\/|\\).*/).optional(),
 });
 
 function hasDatabase() {
@@ -30,22 +31,19 @@ export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
 
   if (!session?.user.customerId || session.user.role !== "customer") {
-    return NextResponse.json({ error: "Sessão do cliente não encontrada." }, { status: 401 });
+    return jsonError("Sessão do cliente não encontrada.", 401);
   }
 
   const customer = await getCustomerById(session.user.customerId);
   if (!customer || !hasCompleteCheckoutProfile(customer)) {
-    return NextResponse.json(
-      { error: "Complete seus dados de cadastro antes de seguir para o pagamento." },
-      { status: 409 },
-    );
+    return jsonError("Complete seus dados de cadastro antes de seguir para o pagamento.", 409);
   }
 
-  const body = await request.json();
+  const body = await parseJsonBody(request);
   const parsed = checkoutSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Dados de checkout inválidos." }, { status: 400 });
+    return jsonError("Dados de checkout inválidos.", 400);
   }
 
   const catalog = await getCatalog();
@@ -53,13 +51,13 @@ export async function POST(request: Request) {
   const items = parsed.data.items
     .map((item) => {
       const product = catalogMap.get(item.id);
-      if (!product) {
+      if (!product || product.stock <= 0) {
         return null;
       }
 
       return {
         product,
-        quantity: Math.min(item.quantity, Math.max(1, product.stock)),
+        quantity: Math.min(item.quantity, product.stock),
       };
     })
     .filter(
@@ -72,18 +70,12 @@ export async function POST(request: Request) {
     );
 
   if (!items.length) {
-    return NextResponse.json(
-      { error: "Nenhum item válido enviado ao checkout." },
-      { status: 400 },
-    );
+    return jsonError("Nenhum item válido enviado ao checkout.", 400);
   }
 
   const primaryAddress = customer.primaryAddress;
   if (!primaryAddress) {
-    return NextResponse.json(
-      { error: "Cadastre um endereço principal antes de prosseguir." },
-      { status: 409 },
-    );
+    return jsonError("Cadastre um endereço principal antes de prosseguir.", 409);
   }
 
   const subtotalInCents = items.reduce(
@@ -96,10 +88,7 @@ export async function POST(request: Request) {
   const stripe = getStripe();
 
   if (stripe && !hasDatabase()) {
-    return NextResponse.json(
-      { error: "Configure o banco de dados para habilitar o checkout com Stripe." },
-      { status: 503 },
-    );
+    return jsonError("Configure o banco de dados para habilitar o checkout com Stripe.", 503);
   }
 
   let orderId: string | null = null;

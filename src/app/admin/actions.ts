@@ -1,5 +1,7 @@
 "use server";
 
+import "server-only";
+
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
@@ -27,6 +29,16 @@ const categorySchema = z.object({
   name: z.string().min(2),
   description: z.string().min(6),
 });
+
+const idSchema = z.string().trim().min(1);
+const orderStatusSchema = z.enum([
+  "PENDING",
+  "PAID",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+  "CANCELED",
+]);
 
 function buildTagPayload(parsed: z.infer<typeof productSchema>) {
   return Array.from(
@@ -176,8 +188,8 @@ export async function deleteProductAction(formData: FormData) {
     return;
   }
 
-  const id = String(formData.get("id"));
-  await prisma.product.delete({ where: { id } });
+  const id = idSchema.parse(formData.get("id"));
+  await prisma.product.deleteMany({ where: { id } });
   revalidatePath("/admin/products");
   revalidatePath("/shop");
 }
@@ -195,8 +207,14 @@ export async function createCategoryAction(formData: FormData) {
     description: formData.get("description"),
   });
 
-  await prisma.category.create({
-    data: {
+  await prisma.category.upsert({
+    where: { slug: slugify(parsed.name) },
+    update: {
+      name: parsed.name,
+      description: parsed.description,
+      active: true,
+    },
+    create: {
       name: parsed.name,
       slug: slugify(parsed.name),
       description: parsed.description,
@@ -215,8 +233,11 @@ export async function deleteCategoryAction(formData: FormData) {
     return;
   }
 
-  const id = String(formData.get("id"));
-  await prisma.category.delete({ where: { id } });
+  const id = idSchema.parse(formData.get("id"));
+  await prisma.category.updateMany({
+    where: { id },
+    data: { active: false },
+  });
   revalidatePath("/admin/categories");
 }
 
@@ -228,10 +249,8 @@ export async function updateOrderStatusAction(formData: FormData) {
     return;
   }
 
-  const id = String(formData.get("id"));
-  const status = z
-    .enum(["PENDING", "PAID", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELED"])
-    .parse(formData.get("status"));
+  const id = idSchema.parse(formData.get("id"));
+  const status = orderStatusSchema.parse(formData.get("status"));
 
   await prisma.order.update({
     where: { id },

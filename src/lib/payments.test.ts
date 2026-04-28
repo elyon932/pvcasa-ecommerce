@@ -87,6 +87,14 @@ describe("payments", () => {
   });
 
   it("treats duplicate webhook events as idempotent", async () => {
+    orderFindUnique.mockResolvedValue({
+      id: "order-1",
+      orderNumber: "PVC-20260425-101",
+      status: "PENDING",
+      stripeSessionId: "cs_test_123",
+      deliveryNotes: null,
+      items: [{ productId: "prod-1", quantity: 2 }],
+    });
     stripeWebhookEventCreate.mockRejectedValue(
       new Prisma.PrismaClientKnownRequestError("duplicate", {
         code: "P2002",
@@ -107,6 +115,6 @@ describe("payments", () => {
     });
 
     expect(result).toEqual({ processed: false, reason: "duplicate_event" });
-    expect(orderFindUnique).not.toHaveBeenCalled();
+    expect(productUpdateMany).not.toHaveBeenCalled();
   });
 });

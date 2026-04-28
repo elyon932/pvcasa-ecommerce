@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { createCustomerAccount } from "@/lib/accounts";
 import { registerCustomerSchema } from "@/lib/customer-validation";
+import { parseJsonBody } from "@/lib/request";
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const body = await parseJsonBody(request);
   const parsed = registerCustomerSchema.safeParse(body);
 
   if (!parsed.success) {

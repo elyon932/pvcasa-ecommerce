@@ -1,3 +1,5 @@
+import "server-only";
+
 import { Prisma, type PrismaClient } from "@prisma/client";
 import type Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
@@ -163,14 +165,6 @@ export async function finalizeStripeCheckoutSession({
 
   try {
     return await prisma.$transaction(async (tx) => {
-      await tx.stripeWebhookEvent.create({
-        data: {
-          stripeEventId: eventId,
-          type: eventType,
-          orderId,
-        },
-      });
-
       const order = await tx.order.findUnique({
         where: { id: orderId },
         select: {
@@ -185,6 +179,14 @@ export async function finalizeStripeCheckoutSession({
               quantity: true,
             },
           },
+        },
+      });
+
+      await tx.stripeWebhookEvent.create({
+        data: {
+          stripeEventId: eventId,
+          type: eventType,
+          orderId: order?.id ?? null,
         },
       });
 
@@ -236,20 +238,20 @@ export async function cancelStripeCheckoutOrder({
 
   try {
     return await prisma.$transaction(async (tx) => {
-      await tx.stripeWebhookEvent.create({
-        data: {
-          stripeEventId: eventId,
-          type: eventType,
-          orderId,
-        },
-      });
-
       const order = await tx.order.findUnique({
         where: { id: orderId },
         select: {
           id: true,
           status: true,
           deliveryNotes: true,
+        },
+      });
+
+      await tx.stripeWebhookEvent.create({
+        data: {
+          stripeEventId: eventId,
+          type: eventType,
+          orderId: order?.id ?? null,
         },
       });
 

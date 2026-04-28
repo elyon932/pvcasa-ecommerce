@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { updateCustomerAddress } from "@/lib/accounts";
 import { authOptions } from "@/lib/auth";
 import { addressFormSchema } from "@/lib/customer-validation";
+import { parseJsonBody } from "@/lib/request";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -10,7 +11,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sessão inválida." }, { status: 401 });
   }
 
-  const body = await request.json();
+  const body = await parseJsonBody(request);
   const parsed = addressFormSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
   try {
     await updateCustomerAddress(
       session.user.customerId,
-      typeof body.addressId === "string" && body.addressId ? body.addressId : null,
+      body && typeof body.addressId === "string" && body.addressId ? body.addressId : null,
       parsed.data,
     );
   } catch (error) {

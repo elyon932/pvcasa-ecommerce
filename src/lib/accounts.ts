@@ -1,3 +1,5 @@
+import "server-only";
+
 import bcrypt from "bcryptjs";
 import type { CustomerAddressType } from "@prisma/client";
 import { customerAccounts } from "@/data/mockStore";

@@ -1,3 +1,5 @@
+import "server-only";
+
 import Stripe from "stripe";
 
 const STRIPE_API_VERSION = "2026-03-25.dahlia";
@@ -15,6 +17,16 @@ function getCheckoutBaseUrl(requestOrigin?: string) {
   }
 
   return configuredBaseUrl;
+}
+
+function resolveCheckoutPath(path: string | undefined, fallback: string) {
+  const value = path?.trim() || fallback;
+
+  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return fallback;
+  }
+
+  return value;
 }
 
 export function getStripe() {
@@ -53,9 +65,10 @@ export function buildCheckoutUrls({
   successUrl.searchParams.set("order", orderNumber);
 
   const cancelUrl = new URL(
-    cancelPath?.startsWith("/")
-      ? cancelPath
-      : process.env.STRIPE_CHECKOUT_CANCEL_URL?.trim() || "/checkout",
+    resolveCheckoutPath(
+      cancelPath,
+      process.env.STRIPE_CHECKOUT_CANCEL_URL?.trim() || "/checkout",
+    ),
     baseUrl,
   );
 

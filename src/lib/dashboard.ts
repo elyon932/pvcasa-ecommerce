@@ -1,3 +1,5 @@
+import "server-only";
+
 import { dashboardMetrics, orders } from "@/data/mockStore";
 import { prisma } from "@/lib/prisma";
 import { getCatalog } from "@/lib/storefront";

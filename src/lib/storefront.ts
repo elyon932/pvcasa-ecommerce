@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   categories as categoryDefinitions,
   heroSlides as heroSlideDefinitions,
@@ -264,7 +266,10 @@ export async function getCategories() {
   }
 
   try {
-    const dbCategories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+    const dbCategories = await prisma.category.findMany({
+      where: { active: true },
+      orderBy: [{ displayOrder: "asc" }, { name: "asc" }],
+    });
     if (!dbCategories.length) {
       throw new Error("No categories in database");
     }
