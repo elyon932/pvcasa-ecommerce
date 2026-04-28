@@ -91,6 +91,12 @@ export async function POST(request: Request) {
     return jsonError("Configure o banco de dados para habilitar o checkout com Stripe.", 503);
   }
 
+  if (!stripe) {
+    return NextResponse.json({
+      checkoutUrl: `/checkout/success?order=${orderNumber}&demo=1`,
+    });
+  }
+
   let orderId: string | null = null;
 
   if (hasDatabase()) {
@@ -126,19 +132,6 @@ export async function POST(request: Request) {
     });
 
     orderId = order.id;
-  }
-
-  if (!stripe) {
-    if (orderId) {
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { status: "PAID", paidAt: new Date() },
-      });
-    }
-
-    return NextResponse.json({
-      checkoutUrl: `/checkout/success?order=${orderNumber}&demo=1`,
-    });
   }
 
   try {

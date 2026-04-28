@@ -41,10 +41,24 @@ function resolveOrderId(session: Stripe.Checkout.Session) {
   return null;
 }
 
+function resolvePaymentIntentOrderId(paymentIntent: Stripe.PaymentIntent) {
+  const metadataOrderId = paymentIntent.metadata?.orderId;
+
+  if (typeof metadataOrderId === "string" && metadataOrderId) {
+    return metadataOrderId;
+  }
+
+  return null;
+}
+
 type TransactionClient = Omit<
   PrismaClient,
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
+
+async function lockOrderForWebhook(tx: TransactionClient, orderId: string) {
+  await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${orderId} FOR UPDATE`;
+}
 
 async function decrementOrderStock(tx: TransactionClient, order: {
   id: string;
@@ -165,6 +179,8 @@ export async function finalizeStripeCheckoutSession({
 
   try {
     return await prisma.$transaction(async (tx) => {
+      await lockOrderForWebhook(tx, orderId);
+
       const order = await tx.order.findUnique({
         where: { id: orderId },
         select: {
@@ -216,6 +232,76 @@ export async function finalizeStripeCheckoutSession({
   }
 }
 
+export async function finalizeStripePaymentIntent({
+  eventId,
+  eventType,
+  paymentIntent,
+}: {
+  eventId: string;
+  eventType: string;
+  paymentIntent: Stripe.PaymentIntent;
+}) {
+  if (!hasDatabase()) {
+    return { processed: false as const, reason: "database_unavailable" as const };
+  }
+
+  const orderId = resolvePaymentIntentOrderId(paymentIntent);
+  if (!orderId) {
+    return { processed: false as const, reason: "missing_order_id" as const };
+  }
+
+  const paidAt = new Date();
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      await lockOrderForWebhook(tx, orderId);
+
+      const order = await tx.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          orderNumber: true,
+          status: true,
+          deliveryNotes: true,
+          items: {
+            select: {
+              productId: true,
+              quantity: true,
+            },
+          },
+        },
+      });
+
+      await tx.stripeWebhookEvent.create({
+        data: {
+          stripeEventId: eventId,
+          type: eventType,
+          orderId: order?.id ?? null,
+        },
+      });
+
+      if (!order) {
+        return { processed: false as const, reason: "order_not_found" as const };
+      }
+
+      if (order.status !== "PENDING") {
+        return { processed: false as const, reason: "already_processed" as const };
+      }
+
+      return decrementOrderStock(tx, order, paymentIntent.id, paidAt);
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return { processed: false as const, reason: "duplicate_event" as const };
+    }
+
+    throw error;
+  }
+}
+
 export async function cancelStripeCheckoutOrder({
   eventId,
   eventType,
@@ -238,6 +324,8 @@ export async function cancelStripeCheckoutOrder({
 
   try {
     return await prisma.$transaction(async (tx) => {
+      await lockOrderForWebhook(tx, orderId);
+
       const order = await tx.order.findUnique({
         where: { id: orderId },
         select: {

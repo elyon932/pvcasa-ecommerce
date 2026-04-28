@@ -1,9 +1,12 @@
 import "server-only";
 
+import type { OrderStatus as PrismaOrderStatus } from "@prisma/client";
 import { dashboardMetrics, orders } from "@/data/mockStore";
 import { prisma } from "@/lib/prisma";
 import { getCatalog } from "@/lib/storefront";
 import type { DashboardMetrics, Order, Product } from "@/types/store";
+
+const paidOrderStatuses: PrismaOrderStatus[] = ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"];
 
 function hasDatabase() {
   return Boolean(process.env.DATABASE_URL);
@@ -61,12 +64,16 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   try {
     const [ordersCount, revenueAgg, recentOrders] = await Promise.all([
-      prisma.order.count(),
+      prisma.order.count({
+        where: { status: { in: paidOrderStatuses } },
+      }),
       prisma.order.aggregate({
+        where: { status: { in: paidOrderStatuses } },
         _sum: { totalInCents: true },
         _avg: { totalInCents: true },
       }),
       prisma.order.findMany({
+        where: { status: { in: paidOrderStatuses } },
         include: { items: true },
         orderBy: { createdAt: "desc" },
         take: 5,
@@ -75,6 +82,11 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
     const bestSellersRaw = await prisma.orderItem.groupBy({
       by: ["productName"],
+      where: {
+        order: {
+          status: { in: paidOrderStatuses },
+        },
+      },
       _sum: {
         quantity: true,
         totalInCents: true,

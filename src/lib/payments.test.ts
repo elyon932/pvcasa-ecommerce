@@ -2,12 +2,14 @@ import { Prisma } from "@prisma/client";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const stripeWebhookEventCreate = vi.fn();
+const queryRaw = vi.fn();
 const orderFindUnique = vi.fn();
 const orderUpdate = vi.fn();
 const productFindMany = vi.fn();
 const productUpdateMany = vi.fn();
 const transaction = vi.fn(async (callback: (tx: unknown) => Promise<unknown>) =>
   callback({
+    $queryRaw: queryRaw,
     stripeWebhookEvent: {
       create: stripeWebhookEventCreate,
     },
@@ -32,6 +34,7 @@ describe("payments", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    queryRaw.mockResolvedValue([]);
     process.env.DATABASE_URL = "postgresql://localhost/test";
   });
 
@@ -61,6 +64,7 @@ describe("payments", () => {
     });
 
     expect(result).toEqual({ processed: true, reason: "paid" });
+    expect(queryRaw).toHaveBeenCalled();
     expect(stripeWebhookEventCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({

@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { OrderStatus as PrismaOrderStatus } from "@prisma/client";
 import {
   categories as categoryDefinitions,
   heroSlides as heroSlideDefinitions,
@@ -7,9 +8,16 @@ import {
   products as productDefinitions,
 } from "@/data/mockStore";
 import { prisma } from "@/lib/prisma";
-import type { Category, HeroSlide, Product, ProductFilters } from "@/types/store";
+import type { Category, HeroSlide, Order, Product, ProductFilters } from "@/types/store";
 
 const categoryOrder = ["bed", "table", "bath", "decor", "kids"] as const;
+const customerVisibleOrderStatuses: PrismaOrderStatus[] = [
+  "PAID",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+];
+const customerVisibleOrderStatusSet = new Set<string>(customerVisibleOrderStatuses);
 
 function hasDatabase() {
   return Boolean(process.env.DATABASE_URL);
@@ -361,15 +369,22 @@ export function getCatalogFilters() {
   };
 }
 
-export async function getCustomerOrders(customerId: string, customerEmail?: string) {
+export async function getCustomerOrders(
+  customerId: string,
+  customerEmail?: string,
+): Promise<Order[]> {
   if (hasDatabase()) {
     try {
       const dbOrders = await prisma.order.findMany({
         where: customerEmail
           ? {
+              status: { in: customerVisibleOrderStatuses },
               OR: [{ customerId }, { customerEmail }],
             }
-          : { customerId },
+          : {
+              customerId,
+              status: { in: customerVisibleOrderStatuses },
+            },
         include: { items: true },
         orderBy: { createdAt: "desc" },
       });
@@ -402,6 +417,9 @@ export async function getCustomerOrders(customerId: string, customerEmail?: stri
   }
 
   return orders.filter(
-    (order) => order.customerId === customerId || (customerEmail ? order.customerEmail === customerEmail : false),
+    (order) =>
+      customerVisibleOrderStatusSet.has(order.status) &&
+      (order.customerId === customerId ||
+        (customerEmail ? order.customerEmail === customerEmail : false)),
   );
 }

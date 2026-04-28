@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   cancelStripeCheckoutOrder,
   finalizeStripeCheckoutSession,
+  finalizeStripePaymentIntent,
 } from "@/lib/payments";
 import { getStripe, getStripeWebhookSecret } from "@/lib/stripe";
 
@@ -44,9 +45,27 @@ export async function POST(request: Request) {
   if (
     event.type !== "checkout.session.completed" &&
     event.type !== "checkout.session.async_payment_succeeded" &&
-    event.type !== "checkout.session.async_payment_failed"
+    event.type !== "checkout.session.async_payment_failed" &&
+    event.type !== "payment_intent.succeeded"
   ) {
     return NextResponse.json({ received: true });
+  }
+
+  if (event.type === "payment_intent.succeeded") {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+    const result = await finalizeStripePaymentIntent({
+      eventId: event.id,
+      eventType: event.type,
+      paymentIntent,
+    });
+
+    return NextResponse.json(
+      {
+        received: true,
+        result,
+      },
+      { status: 200 },
+    );
   }
 
   const session = event.data.object as Stripe.Checkout.Session;
@@ -71,17 +90,12 @@ export async function POST(request: Request) {
       session,
     });
 
-    const status =
-      result.reason === "order_not_found" || result.reason === "missing_order_id"
-        ? 404
-        : 200;
-
     return NextResponse.json(
       {
         received: true,
         result,
       },
-      { status },
+      { status: 200 },
     );
   }
 
@@ -91,16 +105,11 @@ export async function POST(request: Request) {
     session,
   });
 
-  const status =
-    result.reason === "order_not_found" || result.reason === "missing_order_id"
-      ? 404
-      : 200;
-
   return NextResponse.json(
     {
       received: true,
       result,
     },
-    { status },
+    { status: 200 },
   );
 }

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const constructEvent = vi.fn();
 const finalizeStripeCheckoutSession = vi.fn();
+const finalizeStripePaymentIntent = vi.fn();
 const cancelStripeCheckoutOrder = vi.fn();
 
 vi.mock("@/lib/stripe", () => ({
@@ -15,6 +16,7 @@ vi.mock("@/lib/stripe", () => ({
 
 vi.mock("@/lib/payments", () => ({
   finalizeStripeCheckoutSession,
+  finalizeStripePaymentIntent,
   cancelStripeCheckoutOrder,
 }));
 
@@ -82,6 +84,53 @@ describe("POST /api/stripe/webhook", () => {
         eventType: "checkout.session.completed",
       }),
     );
+    expect(finalizeStripePaymentIntent).not.toHaveBeenCalled();
+    expect(cancelStripeCheckoutOrder).not.toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual({
+      received: true,
+      result: {
+        processed: true,
+        reason: "paid",
+      },
+    });
+  });
+
+  it("finalizes succeeded payment intents", async () => {
+    constructEvent.mockReturnValue({
+      id: "evt_pi_paid",
+      type: "payment_intent.succeeded",
+      data: {
+        object: {
+          id: "pi_paid",
+          metadata: { orderId: "order-1" },
+        },
+      },
+    });
+    finalizeStripePaymentIntent.mockResolvedValue({
+      processed: true,
+      reason: "paid",
+    });
+
+    const { POST } = await import("./route");
+    const response = await POST(
+      new Request("http://localhost/api/stripe/webhook", {
+        method: "POST",
+        headers: {
+          "stripe-signature": "valid-signature",
+        },
+        body: "{}",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(finalizeStripePaymentIntent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventId: "evt_pi_paid",
+        eventType: "payment_intent.succeeded",
+        paymentIntent: expect.objectContaining({ id: "pi_paid" }),
+      }),
+    );
+    expect(finalizeStripeCheckoutSession).not.toHaveBeenCalled();
     expect(cancelStripeCheckoutOrder).not.toHaveBeenCalled();
     await expect(response.json()).resolves.toEqual({
       received: true,
