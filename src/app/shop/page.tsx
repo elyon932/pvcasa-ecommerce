@@ -4,7 +4,7 @@ import { CatalogFilters } from "@/components/store/catalog-filters";
 import { ProductCard } from "@/components/store/product-card";
 import { getCatalog, getCatalogFilters, getCategories } from "@/lib/storefront";
 
-const PRODUCTS_PER_PAGE = 9;
+const PRODUCTS_PER_PAGE = 15;
 
 type SearchParams = Promise<{
   q?: string;
