@@ -77,7 +77,7 @@ export default async function ShopPage({
     <StorefrontShell>
       <div className="container-shell py-6 sm:py-8 lg:py-10">
         <div className="grid gap-6 xl:grid-cols-[320px_1fr] xl:items-start">
-          <aside className="surface-card p-5 sm:p-6 xl:sticky xl:top-28">
+          <aside className="surface-card p-5 sm:p-6">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)] sm:text-sm sm:tracking-[0.32em]">
               Filtros
             </p>
