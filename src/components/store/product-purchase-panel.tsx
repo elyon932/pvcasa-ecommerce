@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Minus, Plus, X } from "lucide-react";
 import { AddToCartButton } from "@/components/store/add-to-cart-button";
 import { BuyNowButton } from "@/components/store/buy-now-button";
+import { markCheckoutIntent } from "@/lib/checkout-navigation";
 import { formatCurrency } from "@/lib/format";
 import { clampQuantityToStock, getMaxSelectableQuantity } from "@/lib/quantity";
 import type { Product } from "@/types/store";
@@ -176,6 +177,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <Link
                 href="/checkout"
+                onClick={markCheckoutIntent}
                 className="inline-flex min-h-12 items-center justify-center rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--copper)] transition hover:bg-[color:var(--wood)] hover:text-white"
               >
                 Fechar pedido

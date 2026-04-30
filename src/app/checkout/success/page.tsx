@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 
 type SearchParams = Promise<{
@@ -12,6 +13,10 @@ export default async function CheckoutSuccessPage({
   searchParams: SearchParams;
 }) {
   const params = await searchParams;
+
+  if (!params.order) {
+    redirect("/shop");
+  }
 
   return (
     <StorefrontShell>

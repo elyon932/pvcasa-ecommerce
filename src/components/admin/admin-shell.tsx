@@ -30,15 +30,15 @@ export async function AdminShell({
 
   return (
     <div className="min-h-screen bg-[color:var(--surface)]">
-      <div className="container-shell grid min-h-screen gap-6 py-6 sm:gap-8 sm:py-8 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <aside className="rounded-[1.75rem] border border-[color:var(--border)] bg-[color:var(--wood-dark)] p-5 text-white sm:rounded-[2rem] sm:p-6">
+      <div className="container-shell grid min-h-screen gap-6 py-6 sm:gap-8 sm:py-8 xl:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-[1.75rem] border border-[color:rgba(255,255,255,0.12)] bg-[color:var(--wood-dark)] p-5 text-white shadow-[0_22px_60px_rgba(60,38,22,0.16)] sm:rounded-[2rem] sm:p-6 xl:sticky xl:top-6">
           <div>
             <p className="font-serif text-3xl">PV Casa</p>
             <p className="mt-2 text-sm text-[color:rgba(255,255,255,0.72)]">
               Painel administrativo da operação digital
             </p>
           </div>
-          <nav className="mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+          <nav className="mt-8 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -55,7 +55,7 @@ export async function AdminShell({
           </nav>
         </aside>
         <main className="min-w-0 space-y-6 sm:space-y-8">
-          <header className="rounded-[1.75rem] border border-[color:var(--border)] bg-white p-5 shadow-[0_12px_30px_rgba(60,38,22,0.05)] sm:rounded-[2rem] sm:p-8">
+          <header className="rounded-[1.75rem] border border-[color:var(--border)] bg-white p-5 shadow-[0_12px_30px_rgba(60,38,22,0.05)] sm:rounded-[2rem] sm:p-7">
             <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
@@ -68,7 +68,7 @@ export async function AdminShell({
                   {description}
                 </p>
               </div>
-              <SignOutButton />
+              <SignOutButton callbackUrl="/admin/login" />
             </div>
           </header>
           {children}

@@ -9,11 +9,15 @@ const DEVELOPMENT_ADMIN_EMAIL = "admin@pvcasa.com.br";
 const DEVELOPMENT_ADMIN_PASSWORD_HASH =
   "$2b$12$lgjLXqNCd2ZrnBXOiCaR1Og8IafxIAI8kJ7.dU6xWwrPG8zybkSl2";
 
+function isValidBcryptHash(value: string) {
+  return /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/.test(value);
+}
+
 function getAdminCredentialsConfig() {
   const email = process.env.ADMIN_EMAIL?.toLowerCase().trim();
   const passwordHash = process.env.ADMIN_PASSWORD_HASH?.trim();
 
-  if (email && passwordHash) {
+  if (email && passwordHash && isValidBcryptHash(passwordHash)) {
     return { email, passwordHash };
   }
 

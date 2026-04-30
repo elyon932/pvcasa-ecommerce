@@ -65,13 +65,10 @@ export function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] disabled:opacity-60 sm:w-auto"
+        className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[color:var(--wood-dark)] disabled:opacity-60"
       >
         {isPending ? "Entrando..." : "Entrar no painel"}
       </button>
-      <p className="text-xs leading-6 text-[color:var(--muted-foreground)]">
-        Em produção, mova as credenciais para variáveis de ambiente e troque a senha padrão.
-      </p>
     </form>
   );
 }

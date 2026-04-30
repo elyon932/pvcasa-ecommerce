@@ -16,6 +16,7 @@ export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
   const isAccountRoute = pathname.startsWith("/account") && pathname !== "/account/login";
+  const isCheckoutRoute = pathname.startsWith("/checkout") && pathname !== "/checkout/success";
 
   if (isAdminRoute && token?.role !== "admin") {
     return buildRedirect(request, "/admin/login");
@@ -25,9 +26,13 @@ export async function proxy(request: NextRequest) {
     return buildRedirect(request, "/account/login");
   }
 
+  if (isCheckoutRoute && token?.role !== "customer") {
+    return buildRedirect(request, "/account/login");
+  }
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/account/:path*"],
+  matcher: ["/admin/:path*", "/account/:path*", "/checkout/:path*"],
 };

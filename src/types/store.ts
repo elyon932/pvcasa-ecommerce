@@ -140,6 +140,33 @@ export type DashboardMetrics = {
   orders: number;
   averageTicketInCents: number;
   returningCustomers: number;
+  visits: number;
+  conversionRate: number;
+  cartsAbandoned: number;
+  activeProducts: number;
+  lowStockProducts: number;
+  revenueTrendPercent: number;
+  ordersTrendPercent: number;
+  revenueSeries: Array<{
+    label: string;
+    revenueInCents: number;
+    orders: number;
+  }>;
+  trafficSources: Array<{
+    label: string;
+    visits: number;
+    share: number;
+  }>;
+  orderStatusBreakdown: Array<{
+    status: OrderStatus;
+    label: string;
+    count: number;
+  }>;
+  operationalAlerts: Array<{
+    label: string;
+    value: string;
+    tone: "success" | "warning" | "neutral";
+  }>;
   bestSellers: Array<{
     name: string;
     quantity: number;

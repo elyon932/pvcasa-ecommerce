@@ -5,6 +5,7 @@ import Link from "next/link";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 import { useCart } from "@/components/providers/cart-provider";
 import { getCheckoutShippingInCents } from "@/lib/checkout";
+import { markCheckoutIntent } from "@/lib/checkout-navigation";
 import { formatCurrency } from "@/lib/format";
 import { clampQuantityToStock, getMaxSelectableQuantity } from "@/lib/quantity";
 
@@ -125,6 +126,7 @@ export default function CartPage() {
               {items.length ? (
                 <Link
                   href="/checkout"
+                  onClick={markCheckoutIntent}
                   className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[color:var(--wood)] px-5 py-3 text-sm font-semibold text-white hover:bg-[color:var(--wood-dark)]"
                 >
                   Ir para o pagamento

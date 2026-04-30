@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
 import { getCheckoutShippingInCents } from "@/lib/checkout";
+import { consumeCheckoutIntent } from "@/lib/checkout-navigation";
 import { formatCurrency } from "@/lib/format";
 
 type CheckoutCustomerSummary = {
@@ -39,6 +40,7 @@ export function CheckoutPageContent({
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
   const hasStartedRef = useRef(false);
+  const hasValidEntryRef = useRef<boolean | null>(null);
 
   const checkoutItems = useMemo(
     () =>
@@ -113,18 +115,30 @@ export function CheckoutPageContent({
         clearCart();
       }
 
-      router.push(data.checkoutUrl);
+      window.location.replace(data.checkoutUrl);
     });
   }, [buyNowItem, checkoutItems, clearCart, router]);
 
   useEffect(() => {
+    if (hasValidEntryRef.current === null) {
+      hasValidEntryRef.current = consumeCheckoutIntent();
+    }
+
+    if (!hasValidEntryRef.current) {
+      router.replace(checkoutItems.length ? "/cart" : "/shop");
+      return;
+    }
+
     if (hasStartedRef.current || !checkoutItems.length) {
+      if (!buyNowItem && !checkoutItems.length) {
+        router.replace("/cart");
+      }
       return;
     }
 
     hasStartedRef.current = true;
     startCheckout();
-  }, [checkoutItems.length, startCheckout]);
+  }, [buyNowItem, checkoutItems.length, router, startCheckout]);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">

@@ -2,7 +2,7 @@ import { LoginForm } from "@/components/admin/login-form";
 
 export default function AdminLoginPage() {
   return (
-    <main className="container-shell flex min-h-screen items-center justify-center py-8 sm:py-12">
+    <div className="flex items-center justify-center min-h-[100dvh] px-4 sm:px-5 lg:px-8">
       <div className="grid w-full max-w-5xl overflow-hidden rounded-[1.9rem] border border-[color:var(--border)] bg-white shadow-[0_30px_90px_rgba(60,38,22,0.08)] lg:grid-cols-[1fr_440px] lg:rounded-[2.5rem]">
         <section className="hidden bg-[linear-gradient(135deg,#5a2b10_0%,#8b4513_45%,#b87333_100%)] p-8 text-white lg:block xl:p-10">
           <p className="text-xs uppercase tracking-[0.34em] text-[color:rgba(255,255,255,0.72)]">
@@ -28,6 +28,6 @@ export default function AdminLoginPage() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }
