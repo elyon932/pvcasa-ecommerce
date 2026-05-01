@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { CHECKOUT_INTENT_COOKIE } from "@/lib/checkout-navigation";
 
 function buildRedirect(request: NextRequest, pathname: string) {
   const url = new URL(pathname, request.url);
@@ -28,6 +29,16 @@ export async function proxy(request: NextRequest) {
 
   if (isCheckoutRoute && token?.role !== "customer") {
     return buildRedirect(request, "/account/login");
+  }
+
+  if (isCheckoutRoute && !request.cookies.has(CHECKOUT_INTENT_COOKIE)) {
+    return NextResponse.redirect(new URL("/cart", request.url));
+  }
+
+  if (isCheckoutRoute) {
+    const response = NextResponse.next();
+    response.cookies.delete(CHECKOUT_INTENT_COOKIE);
+    return response;
   }
 
   return NextResponse.next();
