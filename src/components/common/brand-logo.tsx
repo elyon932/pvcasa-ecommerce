@@ -34,7 +34,7 @@ export function BrandLogo({
           </p>
           <p
             className={cn(
-              "truncate text-[10px] uppercase tracking-[0.18em] sm:text-xs sm:tracking-[0.22em]",
+              "truncate text-[10px] uppercase tracking-[0.18em] max-[410px]:text-[9px] max-[410px]:tracking-[0.14em] max-[383px]:!text-[8px] max-[383px]:!tracking-[0.12em] sm:text-xs sm:tracking-[0.22em]",
               inverted
                 ? "text-[color:rgba(255,255,255,0.72)]"
                 : "text-[color:var(--muted-foreground)]",
