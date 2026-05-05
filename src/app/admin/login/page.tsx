@@ -2,7 +2,7 @@ import { LoginForm } from "@/components/admin/login-form";
 
 export default function AdminLoginPage() {
   return (
-    <div className="flex items-center justify-center min-h-[100dvh] px-4 sm:px-5 lg:px-8">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_18%_18%,rgba(214,157,99,0.28),transparent_28%),radial-gradient(circle_at_82%_12%,rgba(90,43,16,0.18),transparent_26%),linear-gradient(135deg,#fbf7f1_0%,#f1e3d2_44%,#dfc3a5_100%)] px-4 sm:px-5 lg:px-8">
       <div className="grid w-full max-w-5xl overflow-hidden rounded-[1.9rem] border border-[color:var(--border)] bg-white shadow-[0_30px_90px_rgba(60,38,22,0.08)] lg:grid-cols-[1fr_440px] lg:rounded-[2.5rem]">
         <section className="hidden bg-[linear-gradient(135deg,#5a2b10_0%,#8b4513_45%,#b87333_100%)] p-8 text-white lg:block xl:p-10">
           <p className="text-xs uppercase tracking-[0.34em] text-[color:rgba(255,255,255,0.72)]">

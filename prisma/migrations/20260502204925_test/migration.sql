@@ -1,6 +1,3 @@
-﻿-- CreateSchema
-CREATE SCHEMA IF NOT EXISTS "public";
-
 -- CreateEnum
 CREATE TYPE "ProductStatus" AS ENUM ('ACTIVE', 'DRAFT', 'ARCHIVED');
 
@@ -130,6 +127,8 @@ CREATE TABLE "Order" (
     "totalInCents" INTEGER NOT NULL,
     "paymentMethod" TEXT NOT NULL,
     "stripeSessionId" TEXT,
+    "stripePaymentIntentId" TEXT,
+    "paidAt" TIMESTAMP(3),
     "customerId" TEXT,
     "customerName" TEXT NOT NULL,
     "customerEmail" TEXT NOT NULL,
@@ -176,6 +175,17 @@ CREATE TABLE "HomeBanner" (
     CONSTRAINT "HomeBanner_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "StripeWebhookEvent" (
+    "id" TEXT NOT NULL,
+    "stripeEventId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "orderId" TEXT,
+
+    CONSTRAINT "StripeWebhookEvent_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Category_slug_key" ON "Category"("slug");
 
@@ -219,6 +229,9 @@ CREATE UNIQUE INDEX "Order_orderNumber_key" ON "Order"("orderNumber");
 CREATE UNIQUE INDEX "Order_stripeSessionId_key" ON "Order"("stripeSessionId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Order_stripePaymentIntentId_key" ON "Order"("stripePaymentIntentId");
+
+-- CreateIndex
 CREATE INDEX "Order_status_createdAt_idx" ON "Order"("status", "createdAt");
 
 -- CreateIndex
@@ -232,6 +245,12 @@ CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 
 -- CreateIndex
 CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "StripeWebhookEvent_stripeEventId_key" ON "StripeWebhookEvent"("stripeEventId");
+
+-- CreateIndex
+CREATE INDEX "StripeWebhookEvent_orderId_createdAt_idx" ON "StripeWebhookEvent"("orderId", "createdAt");
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -257,3 +276,5 @@ ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("or
 -- AddForeignKey
 ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
+-- AddForeignKey
+ALTER TABLE "StripeWebhookEvent" ADD CONSTRAINT "StripeWebhookEvent_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE SET NULL ON UPDATE CASCADE;

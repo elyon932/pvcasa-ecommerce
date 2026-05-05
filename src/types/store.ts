@@ -139,18 +139,27 @@ export type DashboardMetrics = {
   revenueInCents: number;
   orders: number;
   averageTicketInCents: number;
+  customerAccounts: number;
   returningCustomers: number;
   visits: number;
   conversionRate: number;
-  cartsAbandoned: number;
-  activeProducts: number;
-  lowStockProducts: number;
   revenueTrendPercent: number;
   ordersTrendPercent: number;
   revenueSeries: Array<{
+    dateKey?: string;
     label: string;
     revenueInCents: number;
     orders: number;
+  }>;
+  revenueScales?: Array<{
+    range: 7 | 15 | 30 | 365;
+    label: string;
+    series: Array<{
+      dateKey?: string;
+      label: string;
+      revenueInCents: number;
+      orders: number;
+    }>;
   }>;
   trafficSources: Array<{
     label: string;
@@ -162,15 +171,20 @@ export type DashboardMetrics = {
     label: string;
     count: number;
   }>;
-  operationalAlerts: Array<{
+  categorySales: Array<{
     label: string;
-    value: string;
-    tone: "success" | "warning" | "neutral";
+    quantity: number;
+    share: number;
   }>;
   bestSellers: Array<{
     name: string;
     quantity: number;
     revenueInCents: number;
+  }>;
+  topCustomers: Array<{
+    name: string;
+    orders: number;
+    totalInCents: number;
   }>;
   recentOrders: Order[];
 };

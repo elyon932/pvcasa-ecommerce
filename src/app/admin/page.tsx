@@ -1,67 +1,114 @@
 import {
-  AlertTriangle,
-  BarChart3,
-  Boxes,
   CreditCard,
   MousePointerClick,
   PackageCheck,
-  ShoppingBag,
   TrendingUp,
   Users,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { RevenueLineChart } from "@/components/admin/revenue-line-chart";
 import { getDashboardMetrics } from "@/lib/dashboard";
 import { formatCurrency, formatDate, formatOrderStatus } from "@/lib/format";
+
+const defaultCategorySales = ["Cama", "Mesa", "Banho", "Decor", "Infantil"].map((label) => ({
+  label,
+  quantity: 0,
+  share: 0,
+}));
 
 function formatPercent(value: number) {
   return `${value.toFixed(1).replace(".", ",")}%`;
 }
 
-function trendLabel(value: number) {
-  if (value === 0) {
-    return "estável";
+function buildWholePercentages(values: number[]) {
+  const total = values.reduce((sum, value) => sum + value, 0);
+
+  if (!total) {
+    return values.map(() => 0);
   }
 
-  return `${value > 0 ? "+" : ""}${formatPercent(value)}`;
-}
+  const rawPercentages = values.map((value) => (value / total) * 100);
+  const floors = rawPercentages.map(Math.floor);
+  let remainder = 100 - floors.reduce((sum, value) => sum + value, 0);
+  const order = rawPercentages
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((left, right) => right.fraction - left.fraction);
 
-function chartHeight(value: number, max: number) {
-  if (!max) {
-    return "8%";
+  for (const item of order) {
+    if (remainder <= 0) {
+      break;
+    }
+
+    floors[item.index] += 1;
+    remainder -= 1;
   }
 
-  return `${Math.max(8, Math.round((value / max) * 100))}%`;
+  return floors;
 }
 
-function alertToneClass(tone: "success" | "warning" | "neutral") {
-  switch (tone) {
-    case "success":
-      return "border-[color:rgba(47,122,60,0.2)] bg-[color:rgba(47,122,60,0.08)] text-[color:#2f7a3c]";
-    case "warning":
-      return "border-[color:rgba(184,115,51,0.22)] bg-[color:rgba(184,115,51,0.1)] text-[color:var(--wood-dark)]";
-    case "neutral":
+function parseRange(value?: string | string[]) {
+  const range = Number(Array.isArray(value) ? value[0] : value);
+  return [7, 15, 30, 365].includes(range) ? (range as 7 | 15 | 30 | 365) : 7;
+}
+
+function getCategoryColor(label: string) {
+  switch (label) {
+    case "Cama":
+      return "#8b4513";
+    case "Mesa":
+      return "#b87333";
+    case "Banho":
+      return "#d69d63";
+    case "Decor":
+      return "#d4af37";
+    case "Infantil":
+      return "#5a2b10";
     default:
-      return "border-[color:var(--border)] bg-[color:var(--surface)] text-[color:var(--wood-dark)]";
+      return "#efe4d7";
   }
+}
+
+function buildDonutGradient(categories: Array<{ label: string; share: number }>) {
+  const totalShare = categories.reduce((sum, category) => sum + category.share, 0);
+
+  if (!totalShare) {
+    return "conic-gradient(var(--surface-2) 0% 100%)";
+  }
+
+  let current = 0;
+  const segments = categories.map((category) => {
+    const next = current + category.share;
+    const segment = `${getCategoryColor(category.label)} ${current}% ${next}%`;
+    current = next;
+    return segment;
+  });
+
+  return `conic-gradient(${segments.join(", ")})`;
+}
+
+function completeCategorySales(categories: typeof defaultCategorySales) {
+  const usedLabels = new Set(categories.map((category) => category.label));
+  return [
+    ...categories,
+    ...defaultCategorySales.filter((category) => !usedLabels.has(category.label)),
+  ].slice(0, 5);
 }
 
 function OverviewCard({
   label,
   value,
-  helper,
   icon: Icon,
 }: {
   label: string;
   value: string;
-  helper: string;
   icon: ComponentType<{ className?: string }>;
 }) {
   return (
     <article className="rounded-[1.6rem] border border-[color:var(--border)] bg-white p-5 shadow-[0_16px_36px_rgba(60,38,22,0.06)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--muted-foreground)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--copper)]">
             {label}
           </p>
           <p className="mt-3 text-[clamp(1.65rem,3vw,2.15rem)] font-semibold leading-none text-[color:var(--wood-dark)]">
@@ -72,145 +119,160 @@ function OverviewCard({
           <Icon className="size-5" />
         </span>
       </div>
-      <p className="mt-4 text-sm leading-6 text-[color:var(--muted-foreground)]">{helper}</p>
     </article>
   );
 }
 
-export default async function AdminDashboardPage() {
-  const metrics = await getDashboardMetrics();
-  const maxRevenue = Math.max(...metrics.revenueSeries.map((item) => item.revenueInCents), 1);
+function DashboardProgressItem({
+  index,
+  label,
+  detail,
+  rightValue,
+  barClassName,
+  width,
+}: {
+  index: number;
+  label: string;
+  detail: string;
+  rightValue?: string;
+  barClassName: string;
+  width: string;
+}) {
+  return (
+    <div className="grid w-full gap-2">
+      <div className="flex items-start justify-between gap-4 text-sm">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface)] text-xs font-semibold text-[color:var(--wood-dark)]">
+            {index + 1}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-semibold text-[color:var(--wood-dark)]">{label}</p>
+            <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">{detail}</p>
+          </div>
+        </div>
+        {rightValue ? (
+          <span className="shrink-0 font-semibold text-[color:var(--copper)]">{rightValue}</span>
+        ) : null}
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-[color:var(--surface)]">
+        <div className={`h-full rounded-full ${barClassName}`} style={{ width }} />
+      </div>
+    </div>
+  );
+}
+
+function displayOrderStatus(status: string, orderNumber: string) {
+  return orderNumber === "Sem dados" ? "Sem dados" : formatOrderStatus(status);
+}
+
+function displayOrderDate(value: string, orderNumber: string) {
+  return orderNumber === "Sem dados" ? "Sem dados" : formatDate(value);
+}
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ range?: string | string[] }>;
+}) {
+  const resolvedSearchParams = searchParams ? await searchParams : {};
+  const selectedRange = parseRange(resolvedSearchParams.range);
+  const metrics = await getDashboardMetrics(selectedRange);
   const maxBestSellerQuantity = Math.max(...metrics.bestSellers.map((item) => item.quantity), 1);
-  const maxStatusCount = Math.max(...metrics.orderStatusBreakdown.map((item) => item.count), 1);
   const totalStatusOrders = metrics.orderStatusBreakdown.reduce(
     (sum, item) => sum + item.count,
     0,
   );
+  const statusRows = metrics.orderStatusBreakdown.slice(0, 5);
+  const statusPercentages = buildWholePercentages(statusRows.map((item) => item.count));
+  const categorySales =
+    metrics.categorySales.length > 0
+      ? completeCategorySales(metrics.categorySales.slice(0, 5))
+      : defaultCategorySales;
 
   return (
     <AdminShell
       title="Dashboard de vendas"
       description="Indicadores essenciais para acompanhar receita, conversão, operação e ritmo comercial da loja."
     >
-      <section className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <OverviewCard
           label="Faturamento"
           value={formatCurrency(metrics.revenueInCents)}
-          helper={`${trendLabel(metrics.revenueTrendPercent)} em relação ao período anterior`}
           icon={TrendingUp}
-        />
-        <OverviewCard
-          label="Pedidos pagos"
-          value={String(metrics.orders)}
-          helper={`${trendLabel(metrics.ordersTrendPercent)} no volume de pedidos confirmados`}
-          icon={ShoppingBag}
         />
         <OverviewCard
           label="Ticket médio"
           value={formatCurrency(metrics.averageTicketInCents)}
-          helper="Valor médio por pedido confirmado no canal digital"
           icon={CreditCard}
         />
         <OverviewCard
           label="Conversão"
           value={formatPercent(metrics.conversionRate)}
-          helper={`${metrics.visits.toLocaleString("pt-BR")} visitas estimadas no período`}
           icon={MousePointerClick}
+        />
+        <OverviewCard
+          label="Contas criadas"
+          value={metrics.customerAccounts.toLocaleString("pt-BR")}
+          icon={Users}
         />
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[minmax(0,1.45fr)_minmax(360px,0.75fr)]">
-        <article className="surface-card p-5 sm:p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--copper)]">
-                Receita diária
-              </p>
-              <h2 className="mt-2 font-serif text-[clamp(1.65rem,3vw,2rem)] text-[color:var(--wood-dark)]">
-                Últimos 7 dias
-              </h2>
-            </div>
-            <div className="rounded-2xl bg-[color:var(--surface)] px-4 py-3 text-sm text-[color:var(--muted-foreground)]">
-              <span className="font-semibold text-[color:var(--wood-dark)]">
-                {metrics.cartsAbandoned}
-              </span>{" "}
-              carrinhos para recuperar
-            </div>
-          </div>
-
-          <div className="mt-8 grid min-h-[280px] grid-cols-7 items-end gap-3 sm:gap-4">
-            {metrics.revenueSeries.map((item) => (
-              <div key={item.label} className="flex h-full min-w-0 flex-col justify-end gap-3">
-                <div className="flex h-56 items-end rounded-2xl bg-[color:var(--surface)] p-1.5">
-                  <div
-                    className="w-full rounded-xl bg-[linear-gradient(180deg,var(--copper-light),var(--wood))]"
-                    style={{ height: chartHeight(item.revenueInCents, maxRevenue) }}
-                    aria-label={`${item.label}: ${formatCurrency(item.revenueInCents)}`}
-                  />
-                </div>
-                <div className="text-center">
-                  <p className="truncate text-xs font-semibold text-[color:var(--wood-dark)]">
-                    {item.label}
-                  </p>
-                  <p className="mt-1 text-[11px] text-[color:var(--muted-foreground)]">
-                    {item.orders} ped.
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
+        <article className="surface-card flex min-h-[430px] flex-col p-5 sm:p-6">
+          <RevenueLineChart
+            scales={
+              metrics.revenueScales ?? [
+                { range: selectedRange, label: "7 dias", series: metrics.revenueSeries },
+              ]
+            }
+            initialRange={selectedRange}
+          />
         </article>
 
-        <aside className="grid gap-4">
-          <article className="surface-card p-5 sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--copper)]">
-                  Operação
-                </p>
-                <h2 className="mt-2 font-serif text-[clamp(1.55rem,3vw,1.9rem)] text-[color:var(--wood-dark)]">
-                  Saúde do ecommerce
-                </h2>
-              </div>
-              <BarChart3 className="size-5 text-[color:var(--copper)]" />
+        <article className="surface-card flex flex-col p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--copper)]">
+                Categorias
+              </p>
+              <h2 className="mt-2 font-serif text-[clamp(1.55rem,3vw,1.9rem)] text-[color:var(--wood-dark)]">
+                Participação nas vendas
+              </h2>
             </div>
-            <div className="mt-6 grid gap-3">
-              {metrics.operationalAlerts.map((alert) => (
-                <div
-                  key={alert.label}
-                  className={`flex items-center justify-between gap-4 rounded-2xl border px-4 py-3 ${alertToneClass(
-                    alert.tone,
-                  )}`}
-                >
-                  <span className="text-sm font-medium">{alert.label}</span>
-                  <span className="text-sm font-semibold">{alert.value}</span>
+            <PackageCheck className="size-5 text-[color:var(--copper)]" />
+          </div>
+
+          <div className="mt-8 flex flex-1 flex-col justify-center gap-8">
+            <div className="mx-auto grid size-48 place-items-center rounded-full p-6 sm:size-56">
+              <div
+                className="grid size-full place-items-center rounded-full"
+                style={{ background: buildDonutGradient(categorySales) }}
+              >
+                <div className="grid size-[58%] place-items-center rounded-full bg-white text-center shadow-[inset_0_0_0_1px_var(--border)]">
+                  <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[color:var(--copper)]">
+                    Top 5
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-3">
+              {categorySales.map((category) => (
+                <div key={category.label} className="flex items-center justify-between gap-3 text-sm">
+                  <span className="flex min-w-0 items-center gap-2 font-medium text-[color:var(--wood-dark)]">
+                    <span
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: getCategoryColor(category.label) }}
+                    />
+                    <span className="truncate">{category.label}</span>
+                  </span>
+                  <span className="shrink-0 text-[color:var(--muted-foreground)]">
+                    {category.quantity} un. · {formatPercent(category.share)}
+                  </span>
                 </div>
               ))}
             </div>
-          </article>
-
-          <article className="surface-card p-5 sm:p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--copper)]">
-              Catálogo
-            </p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-[color:var(--surface)] p-4">
-                <Boxes className="size-5 text-[color:var(--copper)]" />
-                <p className="mt-3 text-2xl font-semibold text-[color:var(--wood-dark)]">
-                  {metrics.activeProducts}
-                </p>
-                <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">ativos</p>
-              </div>
-              <div className="rounded-2xl bg-[color:var(--surface)] p-4">
-                <AlertTriangle className="size-5 text-[color:var(--copper)]" />
-                <p className="mt-3 text-2xl font-semibold text-[color:var(--wood-dark)]">
-                  {metrics.lowStockProducts}
-                </p>
-                <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">baixo estoque</p>
-              </div>
-            </div>
-          </article>
-        </aside>
+          </div>
+        </article>
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -227,35 +289,20 @@ export default async function AdminDashboardPage() {
             <PackageCheck className="size-5 text-[color:var(--copper)]" />
           </div>
           <div className="mt-6 space-y-4">
-            {metrics.bestSellers.map((item, index) => (
-              <div key={item.name} className="grid gap-2">
-                <div className="flex items-start justify-between gap-4 text-sm">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface)] text-xs font-semibold text-[color:var(--wood-dark)]">
-                      {index + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-[color:var(--wood-dark)]">
-                        {item.name}
-                      </p>
-                      <p className="mt-1 text-xs text-[color:var(--muted-foreground)]">
-                        {formatCurrency(item.revenueInCents)}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="shrink-0 font-semibold text-[color:var(--copper)]">
-                    {item.quantity} un.
-                  </span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-[color:var(--surface)]">
-                  <div
-                    className="h-full rounded-full bg-[color:var(--copper)]"
-                    style={{
-                      width: `${Math.max(8, Math.round((item.quantity / maxBestSellerQuantity) * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
+            {metrics.bestSellers.slice(0, 5).map((item, index) => (
+              <DashboardProgressItem
+                key={`${item.name}-${index}`}
+                index={index}
+                label={item.name}
+                detail={formatCurrency(item.revenueInCents)}
+                rightValue={`${item.quantity} un.`}
+                barClassName="bg-[color:var(--copper)]"
+                width={
+                  item.quantity > 0
+                    ? `${Math.round((item.quantity / maxBestSellerQuantity) * 100)}%`
+                    : "0%"
+                }
+              />
             ))}
           </div>
         </article>
@@ -267,59 +314,48 @@ export default async function AdminDashboardPage() {
                 Funil comercial
               </p>
               <h2 className="mt-2 font-serif text-[clamp(1.55rem,3vw,1.9rem)] text-[color:var(--wood-dark)]">
-                Canais e status
+                Canais
               </h2>
             </div>
             <Users className="size-5 text-[color:var(--copper)]" />
           </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
-              {metrics.trafficSources.map((source) => (
-                <div key={source.label} className="space-y-2">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-medium text-[color:var(--wood-dark)]">
-                      {source.label}
-                    </span>
-                    <span className="text-[color:var(--muted-foreground)]">{source.share}%</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[color:var(--surface)]">
-                    <div
-                      className="h-full rounded-full bg-[color:var(--wood)]"
-                      style={{ width: `${source.share}%` }}
-                    />
-                  </div>
-                </div>
+              {metrics.trafficSources.slice(0, 5).map((source, index) => (
+                <DashboardProgressItem
+                  key={source.label}
+                  index={index}
+                  label={source.label}
+                  detail={`${source.visits.toLocaleString("pt-BR")} interações`}
+                  rightValue={`${source.share}%`}
+                  barClassName="bg-[color:var(--wood)]"
+                  width={`${source.share}%`}
+                />
               ))}
             </div>
 
             <div className="space-y-4">
-              {metrics.orderStatusBreakdown.map((item) => (
-                <div key={item.status} className="space-y-2">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="font-medium text-[color:var(--wood-dark)]">
-                      {item.label}
-                    </span>
-                    <span className="text-[color:var(--muted-foreground)]">
-                      {item.count} / {totalStatusOrders || 0}
-                    </span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[color:var(--surface)]">
-                    <div
-                      className="h-full rounded-full bg-[color:var(--copper)]"
-                      style={{
-                        width: `${Math.max(5, Math.round((item.count / maxStatusCount) * 100))}%`,
-                      }}
-                    />
-                  </div>
-                </div>
+              <h2 className="mt-2 mb-6 font-serif text-[clamp(1.55rem,3vw,1.9rem)] text-[color:var(--wood-dark)] lg:hidden">
+                Status
+              </h2>
+              {statusRows.map((item, index) => (
+                <DashboardProgressItem
+                  key={item.status}
+                  index={index}
+                  label={item.label}
+                  detail={`${item.count} / ${totalStatusOrders || 0}`}
+                  rightValue={`${statusPercentages[index]}%`}
+                  barClassName="bg-[color:var(--copper)]"
+                  width={`${statusPercentages[index]}%`}
+                />
               ))}
             </div>
           </div>
         </article>
       </section>
 
-      <section className="surface-card overflow-hidden p-5 sm:p-6">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="grid gap-6 xl:grid-cols-2">
+        <article className="surface-card overflow-hidden p-5 sm:p-6">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--copper)]">
               Pedidos recentes
@@ -328,47 +364,86 @@ export default async function AdminDashboardPage() {
               Últimas confirmações
             </h2>
           </div>
-          <p className="text-sm text-[color:var(--muted-foreground)]">
-            Somente pedidos pagos ou em andamento operacional
-          </p>
-        </div>
 
-        <div className="mt-6 overflow-x-auto rounded-[1.4rem] border border-[color:var(--border)]">
-          <table className="min-w-[760px] bg-white text-left text-sm">
-            <thead className="bg-[color:var(--surface)] text-[color:var(--muted-foreground)]">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Pedido</th>
-                <th className="px-4 py-3 font-semibold">Cliente</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Valor</th>
-                <th className="px-4 py-3 font-semibold">Data</th>
-              </tr>
-            </thead>
-            <tbody>
-              {metrics.recentOrders.map((order) => (
-                <tr key={order.id} className="border-t border-[color:var(--border)]">
-                  <td className="px-4 py-4 font-semibold text-[color:var(--wood-dark)]">
-                    {order.orderNumber}
-                  </td>
-                  <td className="px-4 py-4 text-[color:var(--muted-foreground)]">
-                    {order.customerName}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span className="rounded-full bg-[color:var(--surface)] px-3 py-1 text-xs font-semibold text-[color:var(--copper)]">
-                      {formatOrderStatus(order.status)}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 font-semibold text-[color:var(--wood-dark)]">
-                    {formatCurrency(order.totalInCents)}
-                  </td>
-                  <td className="px-4 py-4 text-[color:var(--muted-foreground)]">
-                    {formatDate(order.createdAt)}
-                  </td>
+          <div className="mt-6 overflow-x-auto rounded-[1.4rem] border border-[color:var(--border)]">
+            <table className="w-full min-w-[620px] bg-white text-left text-sm">
+              <thead className="bg-[color:var(--surface)] text-[color:var(--muted-foreground)]">
+                <tr>
+                  <th className="px-4 py-3 align-middle font-semibold">Pedido</th>
+                  <th className="px-4 py-3 align-middle font-semibold">Cliente</th>
+                  <th className="px-4 py-3 text-center align-middle font-semibold">Status</th>
+                  <th className="px-4 py-3 text-right align-middle font-semibold">Valor</th>
+                  <th className="px-4 py-3 text-right align-middle font-semibold">Data</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {metrics.recentOrders.slice(0, 5).map((order) => (
+                  <tr key={order.id} className="border-t border-[color:var(--border)]">
+                    <td className="px-4 py-4 align-middle font-semibold text-[color:var(--wood-dark)]">
+                      {order.orderNumber}
+                    </td>
+                    <td className="px-4 py-4 align-middle text-[color:var(--muted-foreground)]">
+                      {order.customerName}
+                    </td>
+                    <td className="px-4 py-4 text-center align-middle">
+                      <span className="rounded-full bg-[color:var(--surface)] px-3 py-1 text-xs font-semibold text-[color:var(--copper)]">
+                        {displayOrderStatus(order.status, order.orderNumber)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-right align-middle font-semibold text-[color:var(--wood-dark)]">
+                      {formatCurrency(order.totalInCents)}
+                    </td>
+                    <td className="px-4 py-4 text-right align-middle text-[color:var(--muted-foreground)]">
+                      {displayOrderDate(order.createdAt, order.orderNumber)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <article className="surface-card overflow-hidden p-5 sm:p-6">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[color:var(--copper)]">
+              Melhores clientes
+            </p>
+            <h2 className="mt-2 font-serif text-[clamp(1.55rem,3vw,1.9rem)] text-[color:var(--wood-dark)]">
+              Top 5 compradores
+            </h2>
+          </div>
+
+          <div className="mt-6 overflow-x-auto rounded-[1.4rem] border border-[color:var(--border)]">
+            <table className="w-full min-w-[520px] bg-white text-left text-sm">
+              <thead className="bg-[color:var(--surface)] text-[color:var(--muted-foreground)]">
+                <tr>
+                  <th className="px-4 py-3 text-center align-middle font-semibold">#</th>
+                  <th className="px-4 py-3 align-middle font-semibold">Cliente</th>
+                  <th className="px-4 py-3 text-center align-middle font-semibold">Compras</th>
+                  <th className="px-4 py-3 text-right align-middle font-semibold">Total gasto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metrics.topCustomers.slice(0, 5).map((customer, index) => (
+                  <tr key={`${customer.name}-${index}`} className="border-t border-[color:var(--border)]">
+                    <td className="px-4 py-4 text-center align-middle font-semibold text-[color:var(--wood-dark)]">
+                      {index + 1}
+                    </td>
+                    <td className="px-4 py-4 align-middle text-[color:var(--muted-foreground)]">
+                      {customer.name}
+                    </td>
+                    <td className="px-4 py-4 text-center align-middle font-semibold text-[color:var(--wood-dark)]">
+                      {customer.orders}
+                    </td>
+                    <td className="px-4 py-4 text-right align-middle font-semibold text-[color:var(--wood-dark)]">
+                      {formatCurrency(customer.totalInCents)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </article>
       </section>
     </AdminShell>
   );

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, Shapes, ShoppingCart, Sparkles } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Sparkles } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/common/sign-out-button";
@@ -8,7 +8,6 @@ import { authOptions } from "@/lib/auth";
 const navItems = [
   { href: "/admin", label: "Painel", icon: LayoutDashboard },
   { href: "/admin/products", label: "Produtos", icon: Package },
-  { href: "/admin/categories", label: "Categorias", icon: Shapes },
   { href: "/admin/content", label: "Banners", icon: Sparkles },
   { href: "/admin/orders", label: "Pedidos", icon: ShoppingCart },
 ];
@@ -30,8 +29,8 @@ export async function AdminShell({
 
   return (
     <div className="min-h-screen bg-[color:var(--surface)]">
-      <div className="container-shell grid min-h-screen gap-6 py-6 sm:gap-8 sm:py-8 xl:grid-cols-[260px_minmax(0,1fr)]">
-        <aside className="h-fit rounded-[1.75rem] border border-[color:rgba(255,255,255,0.12)] bg-[color:var(--wood-dark)] p-5 text-white shadow-[0_22px_60px_rgba(60,38,22,0.16)] sm:rounded-[2rem] sm:p-6 xl:sticky xl:top-6">
+      <div className="grid min-h-screen w-full gap-6 px-4 py-6 sm:gap-8 sm:px-6 sm:py-8 lg:px-8 xl:grid-cols-[260px_minmax(0,1fr)]">
+        <aside className="h-fit rounded-[1.75rem] border border-[color:rgba(255,255,255,0.12)] bg-[color:var(--wood-dark)] p-5 text-white shadow-[0_22px_60px_rgba(60,38,22,0.16)] sm:rounded-[2rem] sm:p-6 xl:sticky xl:top-8">
           <div>
             <p className="font-serif text-3xl">PV Casa</p>
             <p className="mt-2 text-sm text-[color:rgba(255,255,255,0.72)]">

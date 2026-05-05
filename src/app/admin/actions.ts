@@ -25,11 +25,6 @@ const productSchema = z.object({
   imageUrl: z.string().url(),
 });
 
-const categorySchema = z.object({
-  name: z.string().min(2),
-  description: z.string().min(6),
-});
-
 const idSchema = z.string().trim().min(1);
 const orderStatusSchema = z.enum([
   "PENDING",
@@ -192,53 +187,6 @@ export async function deleteProductAction(formData: FormData) {
   await prisma.product.deleteMany({ where: { id } });
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-}
-
-export async function createCategoryAction(formData: FormData) {
-  await requireAdminSession();
-
-  if (!process.env.DATABASE_URL) {
-    revalidatePath("/admin/categories");
-    return;
-  }
-
-  const parsed = categorySchema.parse({
-    name: formData.get("name"),
-    description: formData.get("description"),
-  });
-
-  await prisma.category.upsert({
-    where: { slug: slugify(parsed.name) },
-    update: {
-      name: parsed.name,
-      description: parsed.description,
-      active: true,
-    },
-    create: {
-      name: parsed.name,
-      slug: slugify(parsed.name),
-      description: parsed.description,
-    },
-  });
-
-  revalidatePath("/admin/categories");
-  revalidatePath("/shop");
-}
-
-export async function deleteCategoryAction(formData: FormData) {
-  await requireAdminSession();
-
-  if (!process.env.DATABASE_URL) {
-    revalidatePath("/admin/categories");
-    return;
-  }
-
-  const id = idSchema.parse(formData.get("id"));
-  await prisma.category.updateMany({
-    where: { id },
-    data: { active: false },
-  });
-  revalidatePath("/admin/categories");
 }
 
 export async function updateOrderStatusAction(formData: FormData) {
