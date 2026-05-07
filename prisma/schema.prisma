@@ -213,3 +213,18 @@ model StripeWebhookEvent {
 
   @@index([orderId, createdAt])
 }
+
+model TrafficEvent {
+  id          String   @id @default(cuid())
+  source      String
+  path        String?
+  referrer    String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  sessionId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([source, createdAt])
+  @@index([sessionId, createdAt])
+}

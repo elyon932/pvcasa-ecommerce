@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import {
   cancelStripeCheckoutOrder,
@@ -59,6 +60,8 @@ export async function POST(request: Request) {
       paymentIntent,
     });
 
+    revalidatePath("/admin");
+
     return NextResponse.json(
       {
         received: true,
@@ -90,6 +93,8 @@ export async function POST(request: Request) {
       session,
     });
 
+    revalidatePath("/admin");
+
     return NextResponse.json(
       {
         received: true,
@@ -104,6 +109,8 @@ export async function POST(request: Request) {
     eventType: event.type,
     session,
   });
+
+  revalidatePath("/admin");
 
   return NextResponse.json(
     {

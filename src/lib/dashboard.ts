@@ -1,9 +1,10 @@
 import "server-only";
 
 import type { OrderStatus as PrismaOrderStatus } from "@prisma/client";
-import { dashboardMetrics, orders } from "@/data/mockStore";
+import { orders } from "@/data/mockStore";
 import { prisma } from "@/lib/prisma";
 import { getCatalog } from "@/lib/storefront";
+import { TRAFFIC_SOURCE_LABELS } from "@/lib/traffic";
 import type { DashboardMetrics, Order, OrderStatus, Product } from "@/types/store";
 
 const paidOrderStatuses: PrismaOrderStatus[] = ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"];
@@ -120,21 +121,49 @@ function calculateTrend(series: Array<{ revenueInCents: number; orders: number }
   };
 }
 
-function buildTrafficSources(visits: number): DashboardMetrics["trafficSources"] {
-  const sources = [
-    { label: "Busca orgânica", share: 38 },
-    { label: "Instagram", share: 27 },
-    { label: "Whatsapp", share: 7 },
-    { label: "Facebook", share: 17 },
-    { label: "Outros", share: 11 },
-  ];
+function buildWholePercentages(values: number[]) {
+  const total = values.reduce((sum, value) => sum + value, 0);
 
-  return sources
-    .map((source) => ({
-      ...source,
-      visits: Math.round((visits * source.share) / 100),
-    }))
-    .sort((left, right) => right.visits - left.visits);
+  if (!total) {
+    return values.map(() => 0);
+  }
+
+  const rawPercentages = values.map((value) => (value / total) * 100);
+  const floors = rawPercentages.map(Math.floor);
+  let remainder = 100 - floors.reduce((sum, value) => sum + value, 0);
+  const order = rawPercentages
+    .map((value, index) => ({ index, fraction: value - Math.floor(value) }))
+    .sort((left, right) => right.fraction - left.fraction);
+
+  for (const item of order) {
+    if (remainder <= 0) {
+      break;
+    }
+
+    floors[item.index] += 1;
+    remainder -= 1;
+  }
+
+  return floors;
+}
+
+function buildTrafficSources(
+  entries: Array<{ source: string; count: number }>,
+): DashboardMetrics["trafficSources"] {
+  const countBySource = new Map(entries.map((entry) => [entry.source, entry.count]));
+  const rows = TRAFFIC_SOURCE_LABELS.map((label) => ({
+    label,
+    visits: countBySource.get(label) ?? 0,
+    share: 0,
+  })).sort(
+    (left, right) => right.visits - left.visits || left.label.localeCompare(right.label, "pt-BR"),
+  );
+  const percentages = buildWholePercentages(rows.map((row) => row.visits));
+
+  return rows.map((row, index) => ({
+    ...row,
+    share: percentages[index],
+  }));
 }
 
 function emptyOrder(index: number): Order {
@@ -256,10 +285,7 @@ async function buildFallbackMetrics(rangeDays: number): Promise<DashboardMetrics
       revenueScales.find((scale) => scale.range === rangeDays)?.series ?? revenueScales[0].series,
     revenueScales,
     bestSellers: completeBestSellers([]),
-    trafficSources: dashboardMetrics.trafficSources
-      .slice()
-      .sort((left, right) => right.visits - left.visits)
-      .slice(0, 5),
+    trafficSources: buildTrafficSources([]),
     orderStatusBreakdown: dashboardOrderStatuses.map((status) => ({
       status,
       label: orderStatusLabels[status],
@@ -335,6 +361,8 @@ export async function getDashboardMetrics(rangeDays = 7): Promise<DashboardMetri
       customerAccounts,
       topCustomersRaw,
       fallbackProductsRaw,
+      trafficVisits,
+      trafficSourcesRaw,
     ] = await Promise.all([
       prisma.order.count({
         where: { status: { in: paidOrderStatuses } },
@@ -418,6 +446,11 @@ export async function getDashboardMetrics(rangeDays = 7): Promise<DashboardMetri
         orderBy: { name: "asc" },
         take: 20,
       }),
+      prisma.trafficEvent.count(),
+      prisma.trafficEvent.groupBy({
+        by: ["source"],
+        _count: { source: true },
+      }),
     ]);
 
     const revenueScales = buildRevenueScales(paidOrdersForScales);
@@ -425,7 +458,7 @@ export async function getDashboardMetrics(rangeDays = 7): Promise<DashboardMetri
       revenueScales.find((scale) => scale.range === normalizedRange)?.series ??
       revenueScales[0].series;
     const trends = calculateTrend(revenueSeries);
-    const visits = Math.max(Math.round(ordersCount / 0.028), ordersCount * 18, 320);
+    const visits = trafficVisits;
     const conversionRate = visits ? roundPercent((ordersCount / visits) * 100) : 0;
     const statusCountByName = new Map(
       statusBreakdown.map((item) => [item.status, item._count.status]),
@@ -455,7 +488,12 @@ export async function getDashboardMetrics(rangeDays = 7): Promise<DashboardMetri
       ordersTrendPercent: trends.ordersTrendPercent,
       revenueSeries,
       revenueScales,
-      trafficSources: buildTrafficSources(visits),
+      trafficSources: buildTrafficSources(
+        trafficSourcesRaw.map((source) => ({
+          source: source.source,
+          count: source._count.source,
+        })),
+      ),
       orderStatusBreakdown: dashboardOrderStatuses.map((status) => ({
         status,
         label: orderStatusLabels[status],

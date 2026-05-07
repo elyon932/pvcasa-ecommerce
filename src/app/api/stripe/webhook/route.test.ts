@@ -4,6 +4,11 @@ const constructEvent = vi.fn();
 const finalizeStripeCheckoutSession = vi.fn();
 const finalizeStripePaymentIntent = vi.fn();
 const cancelStripeCheckoutOrder = vi.fn();
+const revalidatePath = vi.fn();
+
+vi.mock("next/cache", () => ({
+  revalidatePath,
+}));
 
 vi.mock("@/lib/stripe", () => ({
   getStripe: () => ({

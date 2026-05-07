@@ -11,6 +11,8 @@ import { RevenueLineChart } from "@/components/admin/revenue-line-chart";
 import { getDashboardMetrics } from "@/lib/dashboard";
 import { formatCurrency, formatDate, formatOrderStatus } from "@/lib/format";
 
+export const dynamic = "force-dynamic";
+
 const defaultCategorySales = ["Cama", "Mesa", "Banho", "Decor", "Infantil"].map((label) => ({
   label,
   quantity: 0,
