@@ -11,11 +11,12 @@ function buildRedirect(request: NextRequest, pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
+  const isAdminLoginRoute = pathname === "/admin/login";
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
   const isAccountRoute = pathname.startsWith("/account") && pathname !== "/account/login";
   const isCheckoutRoute = pathname.startsWith("/checkout") && pathname !== "/checkout/success";
 
-  const adminToken = isAdminRoute
+  const adminToken = isAdminRoute || isAdminLoginRoute
     ? await getToken({
         req: request,
         secret: process.env.NEXTAUTH_SECRET,
@@ -28,8 +29,12 @@ export async function proxy(request: NextRequest) {
           req: request,
           secret: process.env.NEXTAUTH_SECRET,
           cookieName: CLIENT_SESSION_COOKIE,
-        })
-      : null;
+      })
+    : null;
+
+  if (isAdminLoginRoute && adminToken?.isAdmin === true) {
+    return NextResponse.redirect(new URL("/admin", request.url));
+  }
 
   if (isAdminRoute && adminToken?.isAdmin !== true) {
     return buildRedirect(request, "/admin/login");
