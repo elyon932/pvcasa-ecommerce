@@ -3,7 +3,7 @@ import { LayoutDashboard, Package, ShoppingCart, Sparkles } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/common/sign-out-button";
-import { authOptions } from "@/lib/auth";
+import { adminAuthOptions } from "@/lib/auth";
 
 const navItems = [
   { href: "/admin", label: "Painel", icon: LayoutDashboard },
@@ -21,9 +21,9 @@ export async function AdminShell({
   description: string;
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(adminAuthOptions);
 
-  if (!session || session.user.role !== "admin") {
+  if (!session?.user.isAdmin) {
     redirect("/admin/login");
   }
 
@@ -67,7 +67,7 @@ export async function AdminShell({
                   {description}
                 </p>
               </div>
-              <SignOutButton callbackUrl="/admin/login" />
+              <SignOutButton callbackUrl="/admin/login" scope="admin" />
             </div>
           </header>
           {children}

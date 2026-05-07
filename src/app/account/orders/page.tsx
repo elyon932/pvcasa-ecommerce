@@ -4,14 +4,14 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, ReceiptText } from "lucide-react";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 import { getCustomerById } from "@/lib/accounts";
-import { authOptions } from "@/lib/auth";
+import { clientAuthOptions } from "@/lib/auth";
 import { formatCurrency, formatDate, formatOrderStatus } from "@/lib/format";
 import { getCustomerOrders } from "@/lib/storefront";
 
 export default async function AccountOrdersPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(clientAuthOptions);
 
-  if (!session?.user.customerId || session.user.role !== "customer") {
+  if (!session?.user.customerId) {
     redirect("/account/login");
   }
 

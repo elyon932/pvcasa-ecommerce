@@ -4,6 +4,10 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { getCustomerByEmail } from "@/lib/accounts";
+import { ADMIN_SESSION_COOKIE, CLIENT_SESSION_COOKIE } from "@/lib/auth-cookies";
+
+export const CLIENT_SESSION_MAX_AGE = 30 * 24 * 60 * 60;
+export const ADMIN_SESSION_MAX_AGE = 12 * 60 * 60;
 
 const DEVELOPMENT_ADMIN_EMAIL = "admin@pvcasa.com.br";
 const DEVELOPMENT_ADMIN_PASSWORD_HASH =
@@ -50,6 +54,7 @@ export async function authorizeAdminCredentials(email: string, password: string)
     email: adminCredentials.email,
     name: "PV Casa Admin",
     role: "admin",
+    isAdmin: true,
   };
 }
 
@@ -73,25 +78,57 @@ export async function authorizeCustomerCredentials(email: string, password: stri
   };
 }
 
-export const authOptions: NextAuthOptions = {
+function sessionCookieOptions(maxAge: number) {
+  return {
+    httpOnly: true,
+    sameSite: "lax" as const,
+    path: "/",
+    secure: process.env.NEXTAUTH_URL?.startsWith("https://") ?? false,
+    maxAge,
+  };
+}
+
+const sessionCallbacks: NextAuthOptions["callbacks"] = {
+  async jwt({ token, user }) {
+    if (user) {
+      token.role = user.role;
+      token.isAdmin = user.isAdmin === true || user.role === "admin";
+      token.customerId = user.customerId;
+    }
+
+    return token;
+  },
+  async session({ session, token }) {
+    if (session.user) {
+      session.user.isAdmin = token.isAdmin === true;
+      session.user.customerId =
+        typeof token.customerId === "string" ? token.customerId : undefined;
+      session.user.role = session.user.customerId
+        ? "customer"
+        : session.user.isAdmin
+          ? "admin"
+          : typeof token.role === "string"
+            ? token.role
+            : undefined;
+    }
+
+    return session;
+  },
+};
+
+export const clientAuthOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
+    maxAge: CLIENT_SESSION_MAX_AGE,
+    updateAge: 24 * 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name: CLIENT_SESSION_COOKIE,
+      options: sessionCookieOptions(CLIENT_SESSION_MAX_AGE),
+    },
   },
   providers: [
-    CredentialsProvider({
-      id: "admin-credentials",
-      name: "Admin credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        return authorizeAdminCredentials(
-          String(credentials?.email ?? ""),
-          String(credentials?.password ?? ""),
-        );
-      },
-    }),
     CredentialsProvider({
       id: "customer-credentials",
       name: "Customer credentials",
@@ -107,23 +144,23 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.customerId = user.customerId;
-      }
+  callbacks: sessionCallbacks,
+};
 
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.role = typeof token.role === "string" ? token.role : undefined;
-        session.user.customerId =
-          typeof token.customerId === "string" ? token.customerId : undefined;
-      }
-
-      return session;
+export const adminAuthOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+    maxAge: ADMIN_SESSION_MAX_AGE,
+    updateAge: 60 * 60,
+  },
+  cookies: {
+    sessionToken: {
+      name: ADMIN_SESSION_COOKIE,
+      options: sessionCookieOptions(ADMIN_SESSION_MAX_AGE),
     },
   },
+  providers: [],
+  callbacks: sessionCallbacks,
 };
+
+export const authOptions = clientAuthOptions;

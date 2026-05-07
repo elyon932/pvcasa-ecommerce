@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { signIn } from "next-auth/react";
 
 export function LoginForm() {
   const [error, setError] = useState("");
@@ -16,14 +15,16 @@ export function LoginForm() {
 
         startTransition(async () => {
           setError("");
-          const response = await signIn("admin-credentials", {
-            redirect: false,
-            email: String(formData.get("email") ?? ""),
-            password: String(formData.get("password") ?? ""),
-            callbackUrl: "/admin",
+          const response = await fetch("/api/auth/admin-login", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              email: String(formData.get("email") ?? ""),
+              password: String(formData.get("password") ?? ""),
+            }),
           });
 
-          if (response?.error) {
+          if (!response.ok) {
             setError("Credenciais inválidas. Revise o e-mail e a senha.");
             return;
           }

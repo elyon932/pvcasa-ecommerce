@@ -7,7 +7,7 @@ import {
   getPrimaryAddressLabel,
   hasCompleteCheckoutProfile,
 } from "@/lib/accounts";
-import { authOptions } from "@/lib/auth";
+import { clientAuthOptions } from "@/lib/auth";
 import { getProductBySlug } from "@/lib/storefront";
 
 type CheckoutPageProps = {
@@ -24,9 +24,9 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
         params.quantity ?? "1",
       )}`
     : "/checkout";
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(clientAuthOptions);
 
-  if (!session?.user.customerId || session.user.role !== "customer") {
+  if (!session?.user.customerId) {
     redirect(`/account/login?callbackUrl=${encodeURIComponent(callbackUrl)}`);
   }
 

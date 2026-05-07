@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCustomerById, hasCompleteCheckoutProfile } from "@/lib/accounts";
-import { authOptions } from "@/lib/auth";
+import { clientAuthOptions } from "@/lib/auth";
 import { getCheckoutShippingInCents } from "@/lib/checkout";
 import { prisma } from "@/lib/prisma";
 import { jsonError, parseJsonBody } from "@/lib/request";
@@ -28,9 +28,9 @@ function hasDatabase() {
 }
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(clientAuthOptions);
 
-  if (!session?.user.customerId || session.user.role !== "customer") {
+  if (!session?.user.customerId) {
     return jsonError("Sessão do cliente não encontrada.", 401);
   }
 

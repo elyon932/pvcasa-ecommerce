@@ -1,13 +1,13 @@
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { updateCustomerAddress } from "@/lib/accounts";
-import { authOptions } from "@/lib/auth";
+import { clientAuthOptions } from "@/lib/auth";
 import { addressFormSchema } from "@/lib/customer-validation";
 import { parseJsonBody } from "@/lib/request";
 
 export async function POST(request: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user.customerId || session.user.role !== "customer") {
+  const session = await getServerSession(clientAuthOptions);
+  if (!session?.user.customerId) {
     return NextResponse.json({ error: "Sessão inválida." }, { status: 401 });
   }
 

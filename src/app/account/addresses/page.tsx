@@ -5,12 +5,12 @@ import { ArrowLeft } from "lucide-react";
 import { AddressForm } from "@/components/account/address-form";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 import { getCustomerById } from "@/lib/accounts";
-import { authOptions } from "@/lib/auth";
+import { clientAuthOptions } from "@/lib/auth";
 
 export default async function AccountAddressesPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(clientAuthOptions);
 
-  if (!session?.user.customerId || session.user.role !== "customer") {
+  if (!session?.user.customerId) {
     redirect("/account/login");
   }
 

@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 import { categories as mockCategories } from "@/data/mockStore";
-import { authOptions } from "@/lib/auth";
+import { adminAuthOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/utils";
 
@@ -53,9 +53,9 @@ function buildTagPayload(parsed: z.infer<typeof productSchema>) {
 }
 
 async function requireAdminSession() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(adminAuthOptions);
 
-  if (!session?.user || session.user.role !== "admin") {
+  if (!session?.user?.isAdmin) {
     throw new Error("UNAUTHORIZED");
   }
 }

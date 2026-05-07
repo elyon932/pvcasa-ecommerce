@@ -6,14 +6,14 @@ import { AccountSectionCard } from "@/components/account/account-section-card";
 import { SignOutButton } from "@/components/common/sign-out-button";
 import { StorefrontShell } from "@/components/layout/storefront-shell";
 import { getCustomerById, getPrimaryAddressLabel } from "@/lib/accounts";
-import { authOptions } from "@/lib/auth";
+import { clientAuthOptions } from "@/lib/auth";
 import { formatCurrency, formatDate, formatOrderStatus } from "@/lib/format";
 import { getCustomerOrders } from "@/lib/storefront";
 
 export default async function AccountPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(clientAuthOptions);
 
-  if (!session || session.user.role !== "customer" || !session.user.customerId) {
+  if (!session || !session.user.customerId) {
     redirect("/account/login");
   }
 
