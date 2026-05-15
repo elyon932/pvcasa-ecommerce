@@ -85,7 +85,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
 
   return (
     <>
-      <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-[38fr_31fr_31fr]">
         <div className="flex min-h-12 items-center justify-between rounded-full border border-[color:var(--border-strong)] bg-white px-3 text-sm font-semibold text-[color:var(--wood-dark)] shadow-[0_10px_24px_rgba(60,38,22,0.06)] sm:col-span-2 xl:col-span-1">
           <button
             type="button"
@@ -101,8 +101,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
             <Minus className="size-4" />
           </button>
           <span className="min-w-0 px-3 text-center">
-            <span className="hidden sm:inline">Quantidade: {quantity}</span>
-            <span className="sm:hidden">Qtd. {quantity}</span>
+            <span>Quantidade: {quantity}</span>
           </span>
           <button
             type="button"
@@ -129,7 +128,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
         <BuyNowButton
           product={product}
           quantity={quantity}
-          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-center text-sm font-semibold text-[color:var(--copper)] transition hover:bg-[color:var(--wood)] hover:text-white sm:col-span-2 xl:col-span-1"
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-center text-sm font-semibold text-[color:var(--wood-dark)] transition hover:bg-[color:var(--surface)] hover:text-[color:var(--wood-dark)] sm:col-span-2 xl:col-span-1"
         />
       </div>
 

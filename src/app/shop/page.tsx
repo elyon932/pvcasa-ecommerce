@@ -85,7 +85,6 @@ export default async function ShopPage({
               <p className="mt-4 flex items-baseline gap-1 text-sm leading-6 text-[color:var(--muted-foreground)]">
                 <span className="shrink-0">Resultado para</span>
                 <strong className="min-w-0 flex-1 truncate">{params.q}</strong>
-                <span className="shrink-0">.</span>
               </p>
             ) : null}
             <CatalogFilters categories={categories} filters={filters} />

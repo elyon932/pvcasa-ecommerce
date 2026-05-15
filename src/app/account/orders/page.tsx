@@ -21,6 +21,9 @@ export default async function AccountOrdersPage() {
   }
 
   const orders = await getCustomerOrders(customer.id, customer.email);
+  const sortedOrders = orders
+    .slice()
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 
   return (
     <StorefrontShell>
@@ -43,11 +46,11 @@ export default async function AccountOrdersPage() {
 
         {orders.length ? (
           <div className="grid gap-4">
-            {orders.map((order) => (
+            {sortedOrders.map((order) => (
               <article key={order.id} className="surface-card p-5 sm:p-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
+                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-[color:var(--copper)]">
                       {order.orderNumber}
                     </p>
                     <h2 className="mt-2 text-lg font-semibold text-[color:var(--wood-dark)]">
@@ -65,11 +68,21 @@ export default async function AccountOrdersPage() {
                   {order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4 text-sm text-[color:var(--muted-foreground)]"
+                      className="min-w-0 rounded-[1.25rem] bg-[color:var(--surface)] px-4 py-4 text-sm text-[color:var(--muted-foreground)]"
                     >
-                      <p className="font-semibold text-[color:var(--wood-dark)]">{item.name}</p>
-                      <p className="mt-1">Quantidade: {item.quantity}</p>
-                      <p className="mt-1">{formatCurrency(item.unitPriceInCents)}</p>
+                      <p
+                        className="truncate font-semibold text-[color:var(--wood-dark)]"
+                        title={item.name}
+                      >
+                        {item.name}
+                      </p>
+                      <p className="mt-1 whitespace-nowrap">
+                        Quantidade: {item.quantity}{" "}
+                        <span aria-hidden="true">
+                          •
+                        </span>{" "}
+                        {formatCurrency(item.unitPriceInCents)}
+                      </p>
                     </div>
                   ))}
                 </div>

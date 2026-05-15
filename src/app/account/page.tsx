@@ -23,6 +23,10 @@ export default async function AccountPage() {
   }
 
   const orders = await getCustomerOrders(customer.id, customer.email);
+  const recentOrders = orders
+    .slice()
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime())
+    .slice(0, 2);
   const primaryAddress = customer.primaryAddress;
 
   return (
@@ -107,7 +111,7 @@ export default async function AccountPage() {
           >
             {orders.length ? (
               <div className="space-y-4">
-                {orders.slice(0, 2).map((order) => (
+                {recentOrders.map((order) => (
                   <article
                     key={order.id}
                     className="rounded-[1.5rem] border border-[color:var(--border)] bg-[color:var(--surface)] p-4 sm:p-5"
@@ -130,19 +134,43 @@ export default async function AccountPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                      {order.items.map((item) => (
+                    <div
+                      className={
+                        order.items.length > 2
+                          ? "mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(5rem,0.45fr)]"
+                          : "mt-4 grid gap-3 sm:grid-cols-2"
+                      }
+                    >
+                      {order.items.slice(0, 2).map((item) => (
                         <div
                           key={item.id}
-                          className="rounded-[1.25rem] bg-white px-4 py-4 text-sm text-[color:var(--muted-foreground)]"
+                          className="min-w-0 rounded-[1.25rem] bg-white px-4 py-4 text-sm text-[color:var(--muted-foreground)]"
                         >
-                          <p className="font-semibold text-[color:var(--wood-dark)]">
+                          <p
+                            className="truncate font-semibold text-[color:var(--wood-dark)]"
+                            title={item.name}
+                          >
                             {item.name}
                           </p>
-                          <p className="mt-1">Quantidade: {item.quantity}</p>
-                          <p className="mt-1">{formatCurrency(item.unitPriceInCents)}</p>
+                          <p className="mt-1 whitespace-nowrap">
+                            Quantidade: {item.quantity}{" "}
+                            <span aria-hidden="true">
+                              •
+                            </span>{" "}
+                            {formatCurrency(item.unitPriceInCents)}
+                          </p>
                         </div>
                       ))}
+                      {order.items.length > 2 ? (
+                        <div className="grid min-h-[76px] place-items-center rounded-[1.25rem] bg-white px-4 py-4 text-center text-sm text-[color:var(--muted-foreground)]">
+                          <div>
+                            <p className="text-lg font-semibold leading-none text-[color:var(--wood-dark)]">
+                              +{order.items.length - 2}
+                            </p>
+                            <p className="mt-1 text-xs">itens</p>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </article>
                 ))}
