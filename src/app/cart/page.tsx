@@ -30,7 +30,7 @@ export default function CartPage() {
               </div>
               <Link
                 href="/shop"
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:border-[color:var(--copper)] sm:w-auto"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-[color:var(--border-strong)] px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] hover:bg-[var(--surface)] hover:border-[color:var(--copper)] sm:w-auto"
               >
                 Continuar comprando
               </Link>
