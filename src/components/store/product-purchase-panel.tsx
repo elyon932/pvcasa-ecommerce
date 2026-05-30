@@ -177,7 +177,7 @@ export function ProductPurchasePanel({ product }: ProductPurchasePanelProps) {
               <Link
                 href="/checkout"
                 onClick={markCheckoutIntent}
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--copper)] transition hover:bg-[color:var(--wood)] hover:text-white"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-[color:var(--copper)] bg-white px-5 py-3 text-sm font-semibold text-[color:var(--wood-dark)] transition hover:bg-[color:var(--surface)]"
               >
                 Fechar pedido
               </Link>
