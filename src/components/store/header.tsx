@@ -59,7 +59,7 @@ export function Header() {
             </Link>
             <Link
               href="/account"
-              className="flex size-10 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--foreground)] shadow-sm transition hover:border-[color:var(--copper)] hover:bg-[color:var(--surface)] hover:text-[color:var(--copper)] sm:size-11"
+              className="flex size-10 items-center justify-center rounded-full border border-[color:var(--border)] bg-white text-[color:var(--foreground)] shadow-sm transition hover:border-[color:var(--copper)] hover:bg-[color:var(--surface)] hover:text-[color:var(--foreground)] sm:size-11"
               aria-label="Minha conta"
             >
               <UserRound className="size-4" />
