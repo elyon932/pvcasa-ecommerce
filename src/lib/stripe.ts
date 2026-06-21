@@ -6,27 +6,62 @@ const STRIPE_API_VERSION = "2026-03-25.dahlia";
 
 let stripeClient: Stripe | null = null;
 
-function getCheckoutBaseUrl(requestOrigin?: string) {
-  const configuredBaseUrl =
-    process.env.STRIPE_CHECKOUT_BASE_URL?.trim() ||
-    process.env.NEXTAUTH_URL?.trim() ||
-    requestOrigin?.trim();
+function assertCheckoutBaseUrl(value: string) {
+  const url = new URL(value);
 
-  if (!configuredBaseUrl) {
+  if (url.protocol !== "https:" && url.protocol !== "http:") {
     throw new Error("CHECKOUT_BASE_URL_NOT_CONFIGURED");
   }
 
-  return configuredBaseUrl;
+  return url.toString();
 }
 
-function resolveCheckoutPath(path: string | undefined, fallback: string) {
-  const value = path?.trim() || fallback;
-
-  if (!value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
-    return fallback;
+function getCheckoutBaseUrl(requestOrigin?: string) {
+  if (process.env.NODE_ENV !== "production" && requestOrigin?.trim()) {
+    return assertCheckoutBaseUrl(requestOrigin.trim());
   }
 
-  return value;
+  const configuredBaseUrl =
+    process.env.STRIPE_CHECKOUT_BASE_URL?.trim() ||
+    process.env.NEXTAUTH_URL?.trim();
+
+  if (configuredBaseUrl) {
+    return assertCheckoutBaseUrl(configuredBaseUrl);
+  }
+
+  throw new Error("CHECKOUT_BASE_URL_NOT_CONFIGURED");
+}
+
+function isLocalUrl(url: URL) {
+  return ["localhost", "127.0.0.1", "::1"].includes(url.hostname);
+}
+
+function normalizeLocalUrlToBase(url: URL, baseUrl: string) {
+  const base = new URL(baseUrl);
+
+  if (process.env.NODE_ENV !== "production" && isLocalUrl(url) && isLocalUrl(base)) {
+    return new URL(`${url.pathname}${url.search}${url.hash}`, base);
+  }
+
+  return url;
+}
+
+function resolveCheckoutUrl(path: string | undefined, fallback: string, baseUrl: string) {
+  const value = path?.trim() || fallback;
+
+  if (value.includes("\\") || value.startsWith("//")) {
+    return normalizeLocalUrlToBase(new URL(fallback, baseUrl), baseUrl);
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return normalizeLocalUrlToBase(new URL(value), baseUrl);
+  }
+
+  if (!value.startsWith("/")) {
+    return normalizeLocalUrlToBase(new URL(fallback, baseUrl), baseUrl);
+  }
+
+  return new URL(value, baseUrl);
 }
 
 export function getStripe() {
@@ -58,17 +93,16 @@ export function buildCheckoutUrls({
 }) {
   const baseUrl = getCheckoutBaseUrl(requestOrigin ?? undefined);
 
-  const successUrl = new URL(
-    process.env.STRIPE_CHECKOUT_SUCCESS_URL?.trim() || "/checkout/success",
+  const successUrl = resolveCheckoutUrl(
+    process.env.STRIPE_CHECKOUT_SUCCESS_URL,
+    "/checkout/success",
     baseUrl,
   );
   successUrl.searchParams.set("order", orderNumber);
 
-  const cancelUrl = new URL(
-    resolveCheckoutPath(
-      cancelPath,
-      process.env.STRIPE_CHECKOUT_CANCEL_URL?.trim() || "/checkout",
-    ),
+  const cancelUrl = resolveCheckoutUrl(
+    cancelPath,
+    process.env.STRIPE_CHECKOUT_CANCEL_URL?.trim() || "/checkout",
     baseUrl,
   );
 

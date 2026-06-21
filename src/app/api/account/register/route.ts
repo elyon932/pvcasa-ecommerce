@@ -1,10 +1,38 @@
 import { NextResponse } from "next/server";
 import { createCustomerAccount } from "@/lib/accounts";
 import { registerCustomerSchema } from "@/lib/customer-validation";
-import { parseJsonBody } from "@/lib/request";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { RequestBodyTooLargeError, parseJsonBody } from "@/lib/request";
 
 export async function POST(request: Request) {
-  const body = await parseJsonBody(request);
+  const rateLimit = checkRateLimit({
+    key: `register:${getClientIp(request)}`,
+    limit: 8,
+    windowMs: 60 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(
+      "Muitas tentativas de cadastro. Aguarde um pouco e tente novamente.",
+      rateLimit.retryAfterSeconds,
+    );
+  }
+
+  let body: unknown;
+
+  try {
+    body = await parseJsonBody(request, { maxBytes: 16 * 1024 });
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json(
+        { error: "Os dados enviados excedem o tamanho permitido." },
+        { status: 413 },
+      );
+    }
+
+    throw error;
+  }
+
   const parsed = registerCustomerSchema.safeParse(body);
 
   if (!parsed.success) {

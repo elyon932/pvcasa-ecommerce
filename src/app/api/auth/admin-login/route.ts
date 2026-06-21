@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { ADMIN_SESSION_COOKIE } from "@/lib/auth-cookies";
 import { ADMIN_SESSION_MAX_AGE, authorizeAdminCredentials } from "@/lib/auth";
+import { getClientIp, checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { RequestBodyTooLargeError, parseJsonBody } from "@/lib/request";
 
 const adminLoginSchema = z.object({
   email: z.string().email(),
@@ -27,7 +29,32 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Autenticação não configurada." }, { status: 503 });
   }
 
-  const parsed = adminLoginSchema.safeParse(await request.json().catch(() => null));
+  const rateLimit = checkRateLimit({
+    key: `admin-login:${getClientIp(request)}`,
+    limit: 6,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return rateLimitResponse(
+      "Muitas tentativas de login. Aguarde um pouco e tente novamente.",
+      rateLimit.retryAfterSeconds,
+    );
+  }
+
+  let body: unknown;
+
+  try {
+    body = await parseJsonBody(request, { maxBytes: 2 * 1024 });
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "Credenciais invÃ¡lidas." }, { status: 413 });
+    }
+
+    throw error;
+  }
+
+  const parsed = adminLoginSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json({ error: "Credenciais inválidas." }, { status: 400 });

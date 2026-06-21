@@ -2,6 +2,8 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getClientIp, checkRateLimit } from "@/lib/rate-limit";
+import { RequestBodyTooLargeError, parseJsonBody } from "@/lib/request";
 import { resolveTrafficSource } from "@/lib/traffic";
 
 const trafficEventSchema = z.object({
@@ -28,7 +30,31 @@ export async function POST(request: Request) {
     return new Response(null, { status: 204 });
   }
 
-  const body = await request.json().catch(() => null);
+  const rateLimit = checkRateLimit({
+    key: `traffic:${getClientIp(request)}`,
+    limit: 120,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return new Response(null, {
+      status: 429,
+      headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+    });
+  }
+
+  let body: unknown;
+
+  try {
+    body = await parseJsonBody(request, { maxBytes: 4 * 1024 });
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return NextResponse.json({ error: "Evento de trÃ¡fego muito grande." }, { status: 413 });
+    }
+
+    throw error;
+  }
+
   const parsed = trafficEventSchema.safeParse(body);
 
   if (!parsed.success) {

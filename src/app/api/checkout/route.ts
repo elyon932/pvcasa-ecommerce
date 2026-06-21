@@ -5,7 +5,7 @@ import { getCustomerById, hasCompleteCheckoutProfile } from "@/lib/accounts";
 import { clientAuthOptions } from "@/lib/auth";
 import { getCheckoutShippingInCents } from "@/lib/checkout";
 import { prisma } from "@/lib/prisma";
-import { jsonError, parseJsonBody } from "@/lib/request";
+import { RequestBodyTooLargeError, jsonError, parseJsonBody } from "@/lib/request";
 import { getCatalog } from "@/lib/storefront";
 import { buildCheckoutUrls, getStripe } from "@/lib/stripe";
 import { createOrderNumber } from "@/lib/utils";
@@ -39,7 +39,18 @@ export async function POST(request: Request) {
     return jsonError("Complete seus dados de cadastro antes de seguir para o pagamento.", 409);
   }
 
-  const body = await parseJsonBody(request);
+  let body: unknown;
+
+  try {
+    body = await parseJsonBody(request, { maxBytes: 32 * 1024 });
+  } catch (error) {
+    if (error instanceof RequestBodyTooLargeError) {
+      return jsonError("Dados de checkout excedem o tamanho permitido.", 413);
+    }
+
+    throw error;
+  }
+
   const parsed = checkoutSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -137,7 +148,7 @@ export async function POST(request: Request) {
   try {
     const { successUrl, cancelUrl } = buildCheckoutUrls({
       orderNumber,
-      requestOrigin: request.headers.get("origin"),
+      requestOrigin: request.headers.get("origin") ?? new URL(request.url).origin,
       cancelPath: parsed.data.cancelPath ?? "/checkout",
     });
 
